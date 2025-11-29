@@ -1,8 +1,16 @@
 import bcrypt from "bcrypt";
 import User, { IUser } from "../models/user.model";
 import RefreshToken, { IRefreshToken } from "../models/refreshToken.model";
-import { LoginInput, RegisterInput, RefreshTokenInput } from "../validations/auth.validation";
+import {
+  LoginInput,
+  RegisterInput,
+  RefreshTokenInput,
+  VerifyEmailInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from "../validations/auth.validation";
 import { signAccessToken, signRefreshToken, verifyToken } from "../../../utils/jwt";
+import { sendMail } from "../../../utils/mail";
 
 export interface AuthTokens {
   accessToken: string;
@@ -22,6 +30,14 @@ const hashPassword = async (password?: string): Promise<string> => {
     throw new Error("Password is required");
   }
   return bcrypt.hash(sanitized, 10);
+};
+
+const generateOtp = (): string => Math.floor(100000 + Math.random() * 900000).toString();
+
+const addMinutes = (minutes: number): Date => {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() + minutes);
+  return date;
 };
 
 const saveRefreshToken = async (userId: string, token: string, expiresAt: Date) => {
@@ -89,6 +105,12 @@ export const register = async ({
   const tokens = await buildTokens(user);
 
   return { user, tokens };
+};
+
+export const ensureVerificationOnRegister = async (user: IUser): Promise<void> => {
+  if (user.email && !user.isVerified) {
+    await sendEmailVerificationOtp(user);
+  }
 };
 
 export const login = async ({
@@ -188,5 +210,89 @@ export const logout = async ({ refreshToken }: RefreshTokenInput): Promise<void>
     tokenDoc.revoked = true;
     tokenDoc.revokedAt = new Date();
     await tokenDoc.save();
+  }
+};
+
+export const verifyEmailWithOtp = async ({ email, otp }: VerifyEmailInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (!user) {
+    throw new Error("Invalid OTP");
+  }
+
+  if (
+    !user.emailVerificationToken ||
+    !user.emailVerificationExpires ||
+    user.emailVerificationToken !== otp ||
+    user.emailVerificationExpires < new Date()
+  ) {
+    throw new Error("Invalid or expired OTP");
+  }
+
+  user.isVerified = true;
+  user.emailVerificationToken = null;
+  user.emailVerificationExpires = null;
+  await user.save();
+};
+
+export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  // Always respond success later to avoid disclosing existence
+  if (!user) {
+    return;
+  }
+
+  const otp = generateOtp();
+  user.resetPasswordToken = otp;
+  user.resetPasswordExpires = addMinutes(10);
+  await user.save();
+
+  await sendMail({
+    to: normalizedEmail,
+    subject: "Password Reset OTP",
+    text: `Your password reset OTP is ${otp}. It expires in 10 minutes.`,
+  });
+};
+
+export const resetPasswordWithOtp = async ({
+  email,
+  otp,
+  password,
+}: ResetPasswordInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (
+    !user ||
+    !user.resetPasswordToken ||
+    !user.resetPasswordExpires ||
+    user.resetPasswordToken !== otp ||
+    user.resetPasswordExpires < new Date()
+  ) {
+    throw new Error("Invalid or expired OTP");
+  }
+
+  const hashed = await hashPassword(password);
+  user.password = hashed;
+  user.resetPasswordToken = null;
+  user.resetPasswordExpires = null;
+  await user.save();
+};
+
+export const sendEmailVerificationOtp = async (user: IUser): Promise<void> => {
+  const otp = generateOtp();
+  user.emailVerificationToken = otp;
+  user.emailVerificationExpires = addMinutes(30);
+  await user.save();
+
+  if (user.email) {
+    await sendMail({
+      to: user.email,
+      subject: "Verify your email",
+      text: `Your verification OTP is ${otp}. It expires in 30 minutes.`,
+    });
   }
 };

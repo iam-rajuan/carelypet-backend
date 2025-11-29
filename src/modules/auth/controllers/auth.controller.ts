@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import * as authService from "../services/auth.service";
-import { LoginInput, RegisterInput, RefreshTokenInput } from "../validations/auth.validation";
+import {
+  LoginInput,
+  RegisterInput,
+  RefreshTokenInput,
+  VerifyEmailInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from "../validations/auth.validation";
 import { AuthRequest } from "../../../middlewares/auth.middleware";
 import { IUser } from "../models/user.model";
 
@@ -26,6 +33,7 @@ export const register = async (
         tokens,
       },
     });
+    await authService.ensureVerificationOnRegister(user);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Registration failed";
     res.status(400).json({ success: false, message });
@@ -43,6 +51,7 @@ export const login = async (req: Request<unknown, unknown, LoginInput>, res: Res
         tokens,
       },
     });
+    await authService.ensureVerificationOnRegister(user);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Login failed";
     res.status(400).json({ success: false, message });
@@ -96,4 +105,49 @@ export const adminTest = async (req: AuthRequest, res: Response) => {
     message: "Admin access granted",
     user: req.user,
   });
+};
+
+export const verifyEmail = async (
+  req: Request<unknown, unknown, VerifyEmailInput>,
+  res: Response
+) => {
+  try {
+    await authService.verifyEmailWithOtp(req.body);
+    res.json({ success: true, message: "Email verified successfully" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Verification failed";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const forgotPassword = async (
+  req: Request<unknown, unknown, ForgotPasswordInput>,
+  res: Response
+) => {
+  try {
+    await authService.requestPasswordReset(req.body);
+    res.json({
+      success: true,
+      message: "If this email exists, an OTP has been sent",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Request failed";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const resetPassword = async (
+  req: Request<unknown, unknown, ResetPasswordInput>,
+  res: Response
+) => {
+  try {
+    await authService.resetPasswordWithOtp(req.body);
+    res.json({
+      success: true,
+      message: "Password reset successful",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Reset failed";
+    res.status(400).json({ success: false, message });
+  }
 };
