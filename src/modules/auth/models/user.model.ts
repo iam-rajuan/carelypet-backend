@@ -11,6 +11,12 @@ export interface IUser extends Document {
   isVerified: boolean;
   status: "pending" | "active" | "rejected";
   isSuspended: boolean;
+  bio?: string;
+  avatarUrl?: string | null;
+  location?: {
+    city?: string;
+    country?: string;
+  } | null;
   emailVerificationToken?: string | null;
   emailVerificationExpires?: Date | null;
   resetPasswordToken?: string | null;
@@ -50,6 +56,12 @@ const userSchema = new mongoose.Schema<IUser>(
     isSuspended: {
       type: Boolean,
       default: false,
+    },
+    bio: { type: String, default: "" },
+    avatarUrl: { type: String, default: null },
+    location: {
+      city: { type: String, default: "" },
+      country: { type: String, default: "" },
     },
     isVerified: {
       type: Boolean,
