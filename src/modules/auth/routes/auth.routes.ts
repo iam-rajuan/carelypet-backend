@@ -6,6 +6,7 @@ import {
   loginSchema,
   refreshTokenSchema,
   verifyEmailSchema,
+  resendEmailOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "../validations/auth.validation";
@@ -22,6 +23,7 @@ router.post("/login", validate(loginSchema), authController.login);
 router.post("/refresh", validate(refreshTokenSchema), authController.refresh);
 router.post("/logout", validate(refreshTokenSchema), authController.logout);
 router.post("/verify-email", validate(verifyEmailSchema), authController.verifyEmail);
+router.post("/resend-email-otp", validate(resendEmailOtpSchema), authController.resendEmailOtp);
 router.post("/forgot-password", validate(forgotPasswordSchema), authController.forgotPassword);
 router.post("/reset-password", validate(resetPasswordSchema), authController.resetPassword);
 router.get("/me", auth, authController.me);

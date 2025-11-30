@@ -5,6 +5,7 @@ import {
   RegisterInput,
   RefreshTokenInput,
   VerifyEmailInput,
+  ResendEmailOtpInput,
   ForgotPasswordInput,
   ResetPasswordInput,
 } from "../validations/auth.validation";
@@ -24,16 +25,14 @@ export const register = async (
   res: Response
 ) => {
   try {
-    const { user, tokens } = await authService.register(req.body);
+    const user = await authService.register(req.body);
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "OTP sent to email. Please verify email to complete registration.",
       data: {
         user: buildUserResponse(user),
-        tokens,
       },
     });
-    await authService.ensureVerificationOnRegister(user);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Registration failed";
     res.status(400).json({ success: false, message });
@@ -51,7 +50,6 @@ export const login = async (req: Request<unknown, unknown, LoginInput>, res: Res
         tokens,
       },
     });
-    await authService.ensureVerificationOnRegister(user);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Login failed";
     res.status(400).json({ success: false, message });
@@ -112,10 +110,33 @@ export const verifyEmail = async (
   res: Response
 ) => {
   try {
-    await authService.verifyEmailWithOtp(req.body);
-    res.json({ success: true, message: "Email verified successfully" });
+    const { user, tokens } = await authService.verifyEmailWithOtp(req.body);
+    res.json({
+      success: true,
+      message: "Email verified successfully",
+      data: {
+        user: buildUserResponse(user),
+        tokens,
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Verification failed";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const resendEmailOtp = async (
+  req: Request<unknown, unknown, ResendEmailOtpInput>,
+  res: Response
+) => {
+  try {
+    await authService.resendEmailVerificationOtp(req.body);
+    res.json({
+      success: true,
+      message: "OTP resent to email",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Resend failed";
     res.status(400).json({ success: false, message });
   }
 };

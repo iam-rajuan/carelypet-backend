@@ -6,6 +6,7 @@ import {
   RegisterInput,
   RefreshTokenInput,
   VerifyEmailInput,
+  ResendEmailOtpInput,
   ForgotPasswordInput,
   ResetPasswordInput,
 } from "../validations/auth.validation";
@@ -130,17 +131,17 @@ export const register = async ({
   email,
   phone,
   password,
-}: RegisterInput): Promise<AuthResult> => {
+}: RegisterInput): Promise<IUser> => {
   const sanitizedName = name?.trim();
   if (!sanitizedName) {
     throw new Error("Name is required");
   }
 
-  const normalizedEmail = email?.trim().toLowerCase() || undefined;
+  const normalizedEmail = email?.trim().toLowerCase();
   const sanitizedPhone = normalizeContact(phone);
 
-  if (!normalizedEmail && !sanitizedPhone) {
-    throw new Error("Email or phone is required");
+  if (!normalizedEmail) {
+    throw new Error("Email is required");
   }
 
   const contactFilters: Record<string, string>[] = [];
@@ -162,39 +163,23 @@ export const register = async ({
     email: normalizedEmail,
     phone: sanitizedPhone,
     password: hashedPassword,
+    isVerified: false,
   });
 
-  const tokens = await buildTokens(user);
+  await sendEmailVerificationOtp(user);
 
-  return { user, tokens };
+  return user;
 };
 
-export const ensureVerificationOnRegister = async (user: IUser): Promise<void> => {
-  if (user.email && !user.isVerified) {
-    await sendEmailVerificationOtp(user);
-  }
-};
-
-export const login = async ({
-  email,
-  phone,
-  password,
-}: LoginInput): Promise<AuthResult> => {
-  const normalizedEmail = email?.trim().toLowerCase() || undefined;
-  const sanitizedPhone = normalizeContact(phone);
+export const login = async ({ email, password }: LoginInput): Promise<AuthResult> => {
+  const normalizedEmail = email?.trim().toLowerCase();
   const sanitizedPassword = password?.trim();
 
-  if (!normalizedEmail && !sanitizedPhone) {
-    throw new Error("Email or phone is required");
+  if (!normalizedEmail) {
+    throw new Error("Email is required");
   }
 
-  const contactFilters: Record<string, string>[] = [];
-  if (normalizedEmail) contactFilters.push({ email: normalizedEmail });
-  if (sanitizedPhone) contactFilters.push({ phone: sanitizedPhone });
-
-  const user = await User.findOne({
-    $or: contactFilters,
-  });
+  const user = await User.findOne({ email: normalizedEmail });
 
   if (!user) {
     throw new Error("User not found");
@@ -207,6 +192,10 @@ export const login = async ({
   const match = await bcrypt.compare(sanitizedPassword, user.password);
   if (!match) {
     throw new Error("Invalid credentials");
+  }
+
+  if (!user.isVerified) {
+    throw new Error("Email not verified");
   }
 
   const tokens = await buildTokens(user);
@@ -275,7 +264,7 @@ export const logout = async ({ refreshToken }: RefreshTokenInput): Promise<void>
   }
 };
 
-export const verifyEmailWithOtp = async ({ email, otp }: VerifyEmailInput): Promise<void> => {
+export const verifyEmailWithOtp = async ({ email, otp }: VerifyEmailInput): Promise<AuthResult> => {
   const normalizedEmail = email.trim().toLowerCase();
   const user = await User.findOne({ email: normalizedEmail });
 
@@ -296,6 +285,25 @@ export const verifyEmailWithOtp = async ({ email, otp }: VerifyEmailInput): Prom
   user.emailVerificationToken = null;
   user.emailVerificationExpires = null;
   await user.save();
+
+  const tokens = await buildTokens(user);
+
+  return { user, tokens };
+};
+
+export const resendEmailVerificationOtp = async ({ email }: ResendEmailOtpInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.isVerified) {
+    throw new Error("Email already verified");
+  }
+
+  await sendEmailVerificationOtp(user);
 };
 
 export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Promise<void> => {
