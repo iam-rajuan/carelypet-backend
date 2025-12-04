@@ -17,6 +17,12 @@ const requireUser = (req: AuthRequest, res: Response): string | null => {
   return req.user.id;
 };
 
+const matchesFileId = (value: string, fileId: string): boolean => {
+  const key = uploadsService.extractKeyFromUrl(value);
+  const filename = key.split("/").pop();
+  return value === fileId || key === fileId || filename === fileId;
+};
+
 export const uploadUserAvatar = async (req: AuthRequest, res: Response) => {
   try {
     const userId = requireUser(req, res);
@@ -161,9 +167,7 @@ export const deletePetPhoto = async (req: AuthRequest, res: Response) => {
     const { id: petId, fileId } = req.params;
 
     const pet = await petsService.ensureOwnedPet(userId, petId);
-    const storedPhoto = pet.photos.find(
-      (photo) => photo === fileId || uploadsService.extractKeyFromUrl(photo) === fileId
-    );
+    const storedPhoto = pet.photos.find((photo) => matchesFileId(photo, fileId));
 
     if (!storedPhoto) {
       return res.status(404).json({ success: false, message: "Photo not found" });
@@ -188,9 +192,8 @@ export const deletePetDocument = async (req: AuthRequest, res: Response) => {
     const { id: petId, fileId } = req.params;
 
     const pet = await petsService.ensureOwnedPet(userId, petId);
-    const storedRecord = pet.medicalRecords.find(
-      (record) =>
-        record.documentUrl === fileId || uploadsService.extractKeyFromUrl(record.documentUrl) === fileId
+    const storedRecord = pet.medicalRecords.find((record) =>
+      matchesFileId(record.documentUrl, fileId)
     );
 
     if (!storedRecord) {
