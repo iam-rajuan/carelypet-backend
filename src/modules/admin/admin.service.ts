@@ -1,4 +1,4 @@
-import User, { IUser, UserRole } from "../auth/models/user.model";
+import User, { IUser, UserRole } from "../auth/user.model";
 
 export interface PaginatedUsers {
   data: IUser[];

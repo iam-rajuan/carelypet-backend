@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import User, { IUser } from "../auth/models/user.model";
-import RefreshToken from "../auth/models/refreshToken.model";
+import User, { IUser } from "../auth/user.model";
+import RefreshToken from "../auth/refreshToken.model";
 import {
   UpdateProfileInput,
   ChangePasswordInput,

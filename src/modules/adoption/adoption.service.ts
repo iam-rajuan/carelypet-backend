@@ -1,7 +1,7 @@
 import AdoptionListing, { IAdoptionListing, AdoptionStatus } from "./adoption.model";
 import { CreateAdoptionListingInput, ListingQueryInput } from "./adoption.validation";
 import { ensureOwnedPet } from "../pets/pets.service";
-import User from "../auth/models/user.model";
+import User from "../auth/user.model";
 
 export interface PaginatedAdoptionListings {
   data: IAdoptionListing[];
