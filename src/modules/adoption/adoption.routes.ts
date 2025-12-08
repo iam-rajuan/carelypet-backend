@@ -34,20 +34,27 @@ const validateParams =
 
 const validateQuery =
   (schema: ZodSchema) => (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const parsed = schema.parse(req.query);
-      req.query = parsed as typeof req.query;
-      next();
-    } catch (err) {
-      const isZodError = err instanceof ZodError;
+    // Drop blank query params (common from Postman) and collapse arrays to first value
+    const cleaned = Object.fromEntries(
+      Object.entries(req.query || {}).flatMap(([key, value]) => {
+        const v = Array.isArray(value) ? value[0] : value;
+        return v === "" || v === undefined || v === null ? [] : [[key, v]];
+      })
+    );
+
+    const result = schema.safeParse(cleaned);
+    if (!result.success) {
+      const issues = result.error.issues;
       return res.status(400).json({
         success: false,
-        message: isZodError
-          ? err.issues?.[0]?.message || "Validation failed"
-          : "Validation failed",
-        issues: isZodError ? err.issues : err,
+        message: issues?.[0]?.message || "Validation failed",
+        issues,
       });
     }
+
+    // Express 5 makes req.query read-only; stash validated data separately
+    (req as Request & { validatedQuery?: unknown }).validatedQuery = result.data;
+    next();
   };
 
 // 🔓 Public endpoints

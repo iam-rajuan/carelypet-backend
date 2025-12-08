@@ -28,7 +28,7 @@ export const createAdoptionListing = async (req: AuthRequest, res: Response) => 
 // Public list endpoint with filters
 export const listAdoptionListings = async (req: Request, res: Response) => {
   try {
-    const filters = req.query as unknown as ListingQueryInput;
+    const filters = (req as Request & { validatedQuery?: ListingQueryInput }).validatedQuery || {};
     const result = await adoptionService.listAdoptionListings(filters);
     res.json({ success: true, data: result });
   } catch (err) {
