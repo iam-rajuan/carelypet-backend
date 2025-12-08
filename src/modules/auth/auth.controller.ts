@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as authService from "../services/auth.service";
+import * as authService from "./auth.service";
 import {
   LoginInput,
   RegisterInput,
@@ -8,9 +8,9 @@ import {
   ResendEmailOtpInput,
   ForgotPasswordInput,
   ResetPasswordInput,
-} from "../validations/auth.validation";
-import { AuthRequest } from "../../../middlewares/auth.middleware";
-import { IUser } from "../models/user.model";
+} from "./auth.validation";
+import { AuthRequest } from "../../middlewares/auth.middleware";
+import { IUser } from "./user.model";
 
 const buildUserResponse = (user: IUser) => ({
   id: user._id,

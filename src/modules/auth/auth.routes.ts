@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as authController from "../controllers/auth.controller";
-import validate from "../../../middlewares/validate.middleware";
+import * as authController from "./auth.controller";
+import validate from "../../middlewares/validate.middleware";
 import {
   registerSchema,
   loginSchema,
@@ -9,12 +9,12 @@ import {
   resendEmailOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-} from "../validations/auth.validation";
-import auth from "../../../middlewares/auth.middleware";
-import { requireRole } from "../../../middlewares/role.middleware";
+} from "./auth.validation";
+import auth from "../../middlewares/auth.middleware";
+import { requireRole } from "../../middlewares/role.middleware";
 
-import { sendPhoneOtpSchema, verifyPhoneOtpSchema } from "../validations/auth.validation";
-import { sendPhoneOtpController, verifyPhoneOtpController } from "../controllers/auth.controller";
+import { sendPhoneOtpSchema, verifyPhoneOtpSchema } from "./auth.validation";
+import { sendPhoneOtpController, verifyPhoneOtpController } from "./auth.controller";
 
 const router = Router();
 

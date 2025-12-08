@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import User, { IUser } from "../models/user.model";
-import RefreshToken, { IRefreshToken } from "../models/refreshToken.model";
+import User, { IUser } from "./user.model";
+import RefreshToken, { IRefreshToken } from "./refreshToken.model";
 import {
   LoginInput,
   RegisterInput,
@@ -9,9 +9,9 @@ import {
   ResendEmailOtpInput,
   ForgotPasswordInput,
   ResetPasswordInput,
-} from "../validations/auth.validation";
-import { signAccessToken, signRefreshToken, verifyToken } from "../../../utils/jwt";
-import { sendMail } from "../../../utils/mail";
+} from "./auth.validation";
+import { signAccessToken, signRefreshToken, verifyToken } from "../../utils/jwt";
+import { sendMail } from "../../utils/mail";
 type Carrier = "verizon" | "att" | "tmobile" | "sprint";
 
 const carrierGateways: Record<Carrier, string> = {

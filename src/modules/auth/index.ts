@@ -1,4 +1,4 @@
-import router from "./routes/auth.routes";
+import router from "./auth.routes";
 
 const authModule = {
   name: "auth",
