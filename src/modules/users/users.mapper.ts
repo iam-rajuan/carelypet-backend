@@ -1,4 +1,4 @@
-import { IUser } from "../auth/user.model";
+import { IUser } from "./user.model";
 
 export const toUserProfileResponse = (user: IUser) => ({
   id: user._id,

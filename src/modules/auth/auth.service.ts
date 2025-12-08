@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import User, { IUser } from "./user.model";
+import User, { IUser } from "../users/user.model";
 import RefreshToken, { IRefreshToken } from "./refreshToken.model";
 import {
   LoginInput,

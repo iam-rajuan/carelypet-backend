@@ -10,7 +10,7 @@ import {
   ResetPasswordInput,
 } from "./auth.validation";
 import { AuthRequest } from "../../middlewares/auth.middleware";
-import { IUser } from "./user.model";
+import { IUser } from "../users/user.model";
 
 const buildUserResponse = (user: IUser) => ({
   id: user._id,
