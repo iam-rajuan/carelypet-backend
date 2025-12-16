@@ -4,6 +4,8 @@ import adminModule from "./admin";
 import petsModule from "./pets";
 import uploadsModule from "./uploads";
 import adoptionModule from "./adoption";
+import providersModule from "./providers";
+import appointmentsModule from "./appointments";
 
 export interface ModuleDefinition {
   name: string;
@@ -17,6 +19,8 @@ const modules: ModuleDefinition[] = [
   petsModule,
   uploadsModule,
   adoptionModule,
+  providersModule,
+  appointmentsModule,
 ];
 
 export default modules;
