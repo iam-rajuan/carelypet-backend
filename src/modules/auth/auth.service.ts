@@ -299,7 +299,9 @@ export const completeProfile = async (
   );
 
   user.username = normalizedUsername;
-  user.avatarUrl = avatarUrl.trim();
+  if (avatarUrl) {
+    user.avatarUrl = avatarUrl.trim();
+  }
   user.favorites = sanitizedFavorites;
   user.location = {
     city: user.location?.city || "",

@@ -53,6 +53,28 @@ export const verifyPhoneOtpSchema = z.object({
   otp: z.string().trim().length(6, "OTP must be 6 digits"),
 });
 
+const avatarUrlSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().trim().url("Invalid avatar URL").optional()
+);
+
+const favoritesSchema = z.preprocess((value) => {
+  if (value === undefined) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // fall through to comma-separated parsing
+    }
+    return trimmed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return value;
+}, z.array(z.string().trim()).max(20, "Too many favorites"));
+
 export const completeProfileSchema = z.object({
   username: z
     .string()
@@ -61,8 +83,8 @@ export const completeProfileSchema = z.object({
     .max(30, "Username must be at most 30 characters")
     .regex(/^[a-zA-Z0-9._-]+$/, "Username can only contain letters, numbers, dots, dashes, and underscores"),
   country: z.string().trim().min(2, "Country is required"),
-  avatarUrl: z.string().trim().url("Invalid avatar URL"),
-  favorites: z.array(z.string().trim()).max(20, "Too many favorites").default([]),
+  avatarUrl: avatarUrlSchema,
+  favorites: favoritesSchema.default([]),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

@@ -15,6 +15,7 @@ import {
 } from "./auth.validation";
 import auth, { onboardingAuth } from "../../middlewares/auth.middleware";
 import { requireRole } from "../../middlewares/role.middleware";
+import { uploadSingleImage } from "../uploads/upload.middleware";
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.post("/resend-email-otp", validate(resendEmailOtpSchema), authController.
 router.post(
   "/complete-profile",
   onboardingAuth,
+  uploadSingleImage,
   validate(completeProfileSchema),
   authController.completeProfile
 );

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as authService from "./auth.service";
+import * as uploadsService from "../uploads/uploads.service";
 import {
   LoginInput,
   RegisterInput,
@@ -76,7 +77,20 @@ export const completeProfile = async (
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const result = await authService.completeProfile(req.user.id, req.body);
+    let avatarUrl = req.body.avatarUrl;
+    if (req.file) {
+      const upload = await uploadsService.uploadFileToS3(
+        req.file.buffer,
+        req.file.mimetype,
+        "users/avatars"
+      );
+      avatarUrl = upload.url;
+    }
+
+    const result = await authService.completeProfile(req.user.id, {
+      ...req.body,
+      avatarUrl,
+    });
     res.json({
       success: true,
       message: "Profile completed",
