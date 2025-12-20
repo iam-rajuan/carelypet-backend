@@ -1,0 +1,442 @@
+openapi: 3.0.3
+info:
+  title: PetConnect API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+tags:
+  - name: Auth
+  - name: Uploads
+components:
+  securitySchemes:
+    AccessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token returned after login or profile completion.
+    SetupToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Setup token returned after OTP verification for onboarding.
+  schemas:
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          example: Secret123
+        phone:
+          type: string
+          example: "9876543210"
+    VerifyEmailInput:
+      type: object
+      required: [email, otp]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        otp:
+          type: string
+          example: "123456"
+    ResendEmailOtpInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          example: Secret123
+    RefreshTokenInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    ForgotPasswordInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+    ResetPasswordInput:
+      type: object
+      required: [email, otp, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        otp:
+          type: string
+          example: "123456"
+        password:
+          type: string
+          format: password
+          example: NewSecret123
+    CompleteProfileInput:
+      type: object
+      required: [username, country, avatarUrl]
+      properties:
+        username:
+          type: string
+          example: jane_doe
+        country:
+          type: string
+          example: IN
+        avatarUrl:
+          type: string
+          format: uri
+          example: https://your-bucket.s3.amazonaws.com/users/avatars/abc.jpg
+        favorites:
+          type: array
+          items:
+            type: string
+          example: ["dogs", "cats"]
+    Location:
+      type: object
+      properties:
+        city:
+          type: string
+          example: ""
+        country:
+          type: string
+          example: IN
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        phone:
+          type: string
+          example: "9876543210"
+        role:
+          type: string
+          example: user
+        username:
+          type: string
+          example: jane_doe
+        avatarUrl:
+          type: string
+          format: uri
+        location:
+          $ref: "#/components/schemas/Location"
+        favorites:
+          type: array
+          items:
+            type: string
+        isVerified:
+          type: boolean
+          example: true
+        profileCompleted:
+          type: boolean
+          example: true
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user and send email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      name:
+                        type: string
+        "400":
+          description: Registration failed
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email OTP and get setup token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailInput"
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      needsProfileSetup:
+                        type: boolean
+                      setupToken:
+                        type: string
+        "400":
+          description: Verification failed
+  /auth/resend-email-otp:
+    post:
+      tags: [Auth]
+      summary: Resend email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResendEmailOtpInput"
+      responses:
+        "200":
+          description: OTP resent
+        "400":
+          description: Resend failed
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login success or profile setup required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      tokens:
+                        $ref: "#/components/schemas/AuthTokens"
+                      needsProfileSetup:
+                        type: boolean
+                      setupToken:
+                        type: string
+        "400":
+          description: Login failed
+  /auth/complete-profile:
+    post:
+      tags: [Auth]
+      summary: Complete onboarding and receive tokens
+      security:
+        - SetupToken: []
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteProfileInput"
+      responses:
+        "200":
+          description: Profile completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      tokens:
+                        $ref: "#/components/schemas/AuthTokens"
+        "400":
+          description: Profile setup failed
+        "401":
+          description: Unauthorized
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AuthTokens"
+        "400":
+          description: Refresh failed
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout by revoking refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Logged out
+        "400":
+          description: Logout failed
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordInput"
+      responses:
+        "200":
+          description: OTP sent if email exists
+        "400":
+          description: Request failed
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+        "400":
+          description: Reset failed
+  /uploads/user/avatar:
+    post:
+      tags: [Uploads]
+      summary: Upload user avatar (accepts setup or access token)
+      security:
+        - SetupToken: []
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      avatarUrl:
+                        type: string
+                        format: uri
+                      url:
+                        type: string
+                        format: uri
+                      key:
+                        type: string
+        "400":
+          description: Upload failed
+        "401":
+          description: Unauthorized

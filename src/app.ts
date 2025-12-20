@@ -3,6 +3,9 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 import routes from "./routes";
 
 dotenv.config();
@@ -13,6 +16,10 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+
+const openapiPath = path.join(__dirname, "..", "docs", "openapi.yaml");
+const openapiDocument = YAML.load(openapiPath);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
 
 app.use("/api/v1", routes);
 

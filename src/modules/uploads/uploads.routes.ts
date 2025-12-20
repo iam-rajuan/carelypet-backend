@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { ZodError, ZodSchema, z } from "zod";
-import auth from "../../middlewares/auth.middleware";
+import auth, { onboardingAuth } from "../../middlewares/auth.middleware";
 import { petIdParamSchema } from "../pets/pets.validation";
 import * as uploadsController from "./uploads.controller";
 import { uploadDocument, uploadMultipleImages, uploadSingleImage } from "./upload.middleware";
@@ -30,9 +30,9 @@ const fileIdParamSchema = z.object({
   fileId: z.string().trim().min(1, "File id is required"),
 });
 
-router.use(auth);
+router.post("/user/avatar", onboardingAuth, uploadSingleImage, uploadsController.uploadUserAvatar);
 
-router.post("/user/avatar", uploadSingleImage, uploadsController.uploadUserAvatar);
+router.use(auth);
 router.post(
   "/pets/:id/avatar",
   validateParams(petIdParamSchema),
