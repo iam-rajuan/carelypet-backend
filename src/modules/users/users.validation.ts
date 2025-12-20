@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+const favoritesSchema = z.preprocess((value) => {
+  if (value === undefined) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // fall through to comma-separated parsing
+    }
+    return trimmed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return value;
+}, z.array(z.string().trim()).max(20, "Too many favorites"));
+
 export const updateProfileSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").optional(),
   bio: z.string().trim().max(500, "Bio must be at most 500 characters").optional(),
@@ -8,6 +25,10 @@ export const updateProfileSchema = z.object({
     .trim()
     .regex(/^[0-9]{10,15}$/, "Phone must be 10 to 15 digits")
     .optional(),
+  address: z.string().trim().max(200, "Address must be at most 200 characters").optional(),
+  city: z.string().trim().optional(),
+  country: z.string().trim().optional(),
+  favorites: favoritesSchema.default([]).optional(),
   location: z
     .object({
       city: z.string().trim().optional(),

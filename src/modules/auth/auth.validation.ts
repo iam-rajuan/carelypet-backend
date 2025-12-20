@@ -23,7 +23,7 @@ export const refreshTokenSchema = z.object({
 
 export const verifyEmailSchema = z.object({
   email: z.email("Invalid email format").trim(),
-  otp: z.string().trim().length(6, "OTP must be 6 digits"),
+  otp: z.string().trim().length(4, "OTP must be 6 digits"),
 });
 
 export const resendEmailOtpSchema = z.object({

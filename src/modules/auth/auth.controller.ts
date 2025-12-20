@@ -22,6 +22,7 @@ const buildUserResponse = (user: IUser) => ({
   role: user.role,
   username: user.username,
   avatarUrl: user.avatarUrl,
+  address: user.address,
   location: user.location,
   favorites: user.favorites || [],
   isVerified: user.isVerified,

@@ -8,6 +8,7 @@ export const toUserProfileResponse = (user: IUser) => ({
   role: user.role,
   bio: user.bio,
   avatarUrl: user.avatarUrl,
+  address: user.address,
   username: user.username,
   location: user.location,
   isVerified: user.isVerified,

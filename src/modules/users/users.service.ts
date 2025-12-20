@@ -42,11 +42,23 @@ export const updateOwnProfile = async (
     user.bio = payload.bio.trim();
   }
 
-  if (payload.location) {
+  if (payload.address !== undefined) {
+    user.address = payload.address.trim();
+  }
+
+  const nextCity = payload.location?.city ?? payload.city;
+  const nextCountry = payload.location?.country ?? payload.country;
+  if (nextCity !== undefined || nextCountry !== undefined) {
     user.location = {
-      city: payload.location.city?.trim() || "",
-      country: payload.location.country?.trim() || "",
+      city: nextCity?.trim() || "",
+      country: nextCountry?.trim() || "",
     };
+  }
+
+  if (payload.favorites) {
+    user.favorites = Array.from(
+      new Set(payload.favorites.map((item) => item.trim()).filter(Boolean))
+    );
   }
 
   await user.save();
