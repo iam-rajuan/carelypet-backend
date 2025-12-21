@@ -33,4 +33,9 @@ const uploadDocs = multer({
 
 export const uploadSingleImage = uploadImages.single("file");
 export const uploadMultipleImages = uploadImages.array("files", 5);
+export const uploadPetCreateImages = uploadImages.array("files", 3);
+export const uploadPetCreateMedia = uploadImages.fields([
+  { name: "avatar", maxCount: 1 },
+  { name: "files", maxCount: 3 },
+]);
 export const uploadDocument = uploadDocs.single("file");

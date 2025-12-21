@@ -3,6 +3,7 @@ import { z } from "zod";
 const petTypeSchema = z.string().trim().min(2, "Pet type is required");
 const bioSchema = z.string().trim().max(1000, "About must be at most 1000 characters");
 const photoUrlSchema = z.string().trim().url("Invalid photo URL");
+const avatarUrlSchema = z.string().trim().url("Invalid avatar URL");
 const yesNoSchema = z.preprocess((value) => {
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
@@ -11,21 +12,58 @@ const yesNoSchema = z.preprocess((value) => {
   }
   return value;
 }, z.boolean());
+const nonNegativeNumber = (message: string) =>
+  z.preprocess((value) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return undefined;
+      const parsed = Number(trimmed);
+      return Number.isNaN(parsed) ? value : parsed;
+    }
+    return value;
+  }, z.number().min(0, message));
+
+const numberSchema = z.preprocess((value) => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    const parsed = Number(trimmed);
+    return Number.isNaN(parsed) ? value : parsed;
+  }
+  return value;
+}, z.number());
+const personalitySchema = z.preprocess((value) => {
+  if (value === undefined) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // fall through to comma-separated parsing
+    }
+    return trimmed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return value;
+}, z.array(z.string().trim().min(1)).max(5, "Max 5 personality traits"));
 
 export const createPetSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
   type: petTypeSchema.optional(),
   species: petTypeSchema.optional(),
   breed: z.string().trim().optional(),
-  age: z.number().min(0, "Age must be zero or positive").optional(),
-  weightLbs: z.number().min(0, "Weight must be zero or positive").optional(),
+  age: nonNegativeNumber("Age must be zero or positive").optional(),
+  weightLbs: nonNegativeNumber("Weight must be zero or positive").optional(),
   gender: z.enum(["male", "female"]).optional(),
   trained: yesNoSchema.optional(),
   neutered: yesNoSchema.optional(),
-  personality: z.array(z.string().trim().min(1)).max(5, "Max 5 personality traits").optional(),
+  personality: personalitySchema.optional(),
   about: bioSchema.optional(),
   bio: bioSchema.optional(),
   photos: z.array(photoUrlSchema).optional(),
+  avatarUrl: avatarUrlSchema.optional(),
 }).superRefine((value, ctx) => {
   if (!value.species && !value.type) {
     ctx.addIssue({
@@ -41,15 +79,16 @@ export const updatePetSchema = z.object({
   type: petTypeSchema.optional(),
   species: petTypeSchema.optional(),
   breed: z.string().trim().optional(),
-  age: z.number().min(0, "Age must be zero or positive").optional(),
-  weightLbs: z.number().min(0, "Weight must be zero or positive").optional(),
+  age: nonNegativeNumber("Age must be zero or positive").optional(),
+  weightLbs: nonNegativeNumber("Weight must be zero or positive").optional(),
   gender: z.enum(["male", "female"]).optional(),
   trained: yesNoSchema.optional(),
   neutered: yesNoSchema.optional(),
-  personality: z.array(z.string().trim().min(1)).max(5, "Max 5 personality traits").optional(),
+  personality: personalitySchema.optional(),
   about: bioSchema.optional(),
   bio: bioSchema.optional(),
   photos: z.array(photoUrlSchema).optional(),
+  avatarUrl: avatarUrlSchema.optional(),
 });
 
 export const petIdParamSchema = z.object({

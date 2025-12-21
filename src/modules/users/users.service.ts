@@ -8,7 +8,15 @@ import {
 } from "./users.validation";
 
 export const getOwnProfile = async (userId: string): Promise<IUser> => {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).populate("pets");
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
+};
+
+export const getUserById = async (userId: string): Promise<IUser> => {
+  const user = await User.findById(userId).populate("pets");
   if (!user) {
     throw new Error("User not found");
   }

@@ -1,4 +1,5 @@
 import Pet, { IMedicalRecord, IPet } from "./pets.model";
+import User from "../users/user.model";
 import { CreatePetInput, UpdatePetInput } from "./pets.validation";
 
 export const ensureOwnedPet = async (ownerId: string, petId: string): Promise<IPet> => {
@@ -32,8 +33,10 @@ export const createPet = async (ownerId: string, payload: CreatePetInput): Promi
     neutered: payload.neutered,
     personality,
     bio: about?.trim(),
+    avatarUrl: payload.avatarUrl?.trim(),
     photos: payload.photos || [],
   });
+  await User.findByIdAndUpdate(ownerId, { $addToSet: { pets: pet._id } });
   return pet;
 };
 
@@ -78,6 +81,7 @@ export const updatePet = async (
 export const deletePet = async (ownerId: string, petId: string): Promise<void> => {
   const pet = await ensureOwnedPet(ownerId, petId);
   await Pet.deleteOne({ _id: pet._id });
+  await User.findByIdAndUpdate(ownerId, { $pull: { pets: pet._id } });
 };
 
 export const addPetPhoto = async (

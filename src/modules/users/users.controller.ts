@@ -19,6 +19,20 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const user = await usersService.getUserById(req.params.id);
+    res.json({
+      success: true,
+      data: toUserProfileResponse(user),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "User not found";
+    const status = message === "User not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
 export const updateMe = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

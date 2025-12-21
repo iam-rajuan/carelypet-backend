@@ -19,6 +19,7 @@ export interface IUser extends Document {
     city?: string;
     country?: string;
   } | null;
+  pets?: mongoose.Types.ObjectId[];
   emailVerificationToken?: string | null;
   emailVerificationExpires?: Date | null;
   resetPasswordToken?: string | null;
@@ -75,6 +76,7 @@ const userSchema = new mongoose.Schema<IUser>(
       city: { type: String, default: "" },
       country: { type: String, default: "" },
     },
+    pets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Pet" }],
     isVerified: {
       type: Boolean,
       default: false,

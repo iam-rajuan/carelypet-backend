@@ -4,6 +4,7 @@ import validate from "../../middlewares/validate.middleware";
 import { createPetSchema, updatePetSchema, petIdParamSchema } from "./pets.validation";
 import * as petsController from "./pets.controller";
 import { ZodError, ZodSchema } from "zod";
+import { uploadPetCreateMedia } from "../uploads/upload.middleware";
 
 const router = Router();
 
@@ -27,7 +28,7 @@ const validateParams =
 
 router.use(auth);
 
-router.post("/", validate(createPetSchema), petsController.createPet);
+router.post("/", uploadPetCreateMedia, validate(createPetSchema), petsController.createPet);
 router.get("/", petsController.getMyPets);
 router.get("/:id", validateParams(petIdParamSchema), petsController.getPetById);
 router.patch("/:id", validateParams(petIdParamSchema), validate(updatePetSchema), petsController.updatePet);

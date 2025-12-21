@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../../middlewares/auth.middleware";
 import * as petsService from "./pets.service";
+import * as uploadsService from "../uploads/uploads.service";
 import { toPetResponse } from "./pets.mapper";
 
 const requireUser = (req: AuthRequest, res: Response): string | null => {
@@ -15,7 +16,42 @@ export const createPet = async (req: AuthRequest, res: Response) => {
   try {
     const userId = requireUser(req, res);
     if (!userId) return;
-    const pet = await petsService.createPet(userId, req.body);
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | Express.Multer.File[]
+      | undefined;
+    const photoFiles = Array.isArray(files)
+      ? files
+      : (files?.files as Express.Multer.File[] | undefined);
+    const avatarFiles = Array.isArray(files)
+      ? undefined
+      : (files?.avatar as Express.Multer.File[] | undefined);
+
+    if (!photoFiles || photoFiles.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one pet photo is required",
+      });
+    }
+
+    const photoUploads = await Promise.all(
+      photoFiles.map((file) =>
+        uploadsService.uploadFileToS3(file.buffer, file.mimetype, "pets/photos")
+      )
+    );
+    const avatarUpload = avatarFiles?.[0]
+      ? await uploadsService.uploadFileToS3(
+          avatarFiles[0].buffer,
+          avatarFiles[0].mimetype,
+          "pets/avatars"
+        )
+      : undefined;
+
+    const pet = await petsService.createPet(userId, {
+      ...req.body,
+      photos: photoUploads.map((item) => item.url),
+      avatarUrl: avatarUpload?.url,
+    });
     res.status(201).json({ success: true, data: toPetResponse(pet) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to create pet";
