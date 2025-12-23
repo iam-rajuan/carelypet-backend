@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema<IUser>(
     status: {
       type: String,
       enum: ["pending", "active", "rejected"],
-      default: "pending",
+      default: "active",
     },
     isSuspended: {
       type: Boolean,

@@ -20,6 +20,7 @@ const buildUserResponse = (user: IUser) => ({
   email: user.email,
   phone: user.phone,
   role: user.role,
+  status: user.status,
   username: user.username,
   avatarUrl: user.avatarUrl,
   address: user.address,
