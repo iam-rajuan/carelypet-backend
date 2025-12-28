@@ -9,6 +9,12 @@ tags:
   - name: AdminProfile
   - name: AdminPets
   - name: AdminUsers
+  - name: UserBookings
+  - name: UserServices
+  - name: UserPayments
+  - name: Webhooks
+  - name: AdminServiceSettings
+  - name: AdminServiceManagement
   - name: UserAuth
   - name: UserProfiles
   - name: UserUploads
@@ -248,6 +254,124 @@ components:
         updatedAt:
           type: string
           format: date-time
+    ServiceRequestSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        customerName:
+          type: string
+          example: Jane Doe
+        serviceType:
+          type: string
+          example: grooming
+        petType:
+          type: string
+          example: dog
+        petBreed:
+          type: string
+          example: Labrador
+        petAge:
+          type: integer
+          nullable: true
+          example: 3
+        status:
+          type: string
+          enum: [pending, completed]
+        createdAt:
+          type: string
+          format: date-time
+    ServiceRequestDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        customer:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Jane Doe
+            phone:
+              type: string
+              example: "9876543210"
+        service:
+          type: object
+          properties:
+            serviceName:
+              type: string
+              example: Full Grooming
+            dateTime:
+              type: string
+              format: date-time
+            providerName:
+              type: string
+              example: Happy Paws Grooming
+            status:
+              type: string
+              enum: [pending, completed]
+        pet:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Buddy
+            type:
+              type: string
+              example: dog
+            breed:
+              type: string
+              example: Labrador
+            age:
+              type: integer
+              nullable: true
+              example: 3
+        orderSummary:
+          type: object
+          properties:
+            serviceName:
+              type: string
+              example: Full Grooming
+            petName:
+              type: string
+              example: Buddy
+            servicePrice:
+              type: number
+              example: 45
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  serviceName:
+                    type: string
+                  petName:
+                    type: string
+                  price:
+                    type: number
+        payment:
+          type: object
+          properties:
+            subtotal:
+              type: number
+              example: 45
+            taxPercent:
+              type: number
+              example: 5
+            total:
+              type: number
+              example: 47.25
+            status:
+              type: string
+              enum: [paid, unpaid]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     DeletionRequestResponse:
       type: object
       properties:
@@ -309,6 +433,185 @@ components:
         newPassword:
           type: string
           format: password
+    UpdateServiceStatusInput:
+    ServiceCatalog:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        name:
+          type: string
+          example: Full Grooming
+        type:
+          type: string
+          enum: [vet, grooming, training, walking]
+        price:
+          type: number
+          example: 45
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TaxSettingResponse:
+      type: object
+      properties:
+        percent:
+          type: number
+          example: 5
+    AvailabilitySettingResponse:
+      type: object
+      properties:
+        startTime:
+          type: string
+          example: "09:00"
+        endTime:
+          type: string
+          example: "17:00"
+        slotMinutes:
+          type: integer
+          example: 30
+    BookingItem:
+      type: object
+      properties:
+        serviceName:
+          type: string
+          example: Full Grooming
+        serviceType:
+          type: string
+          enum: [vet, grooming, training, walking]
+        petName:
+          type: string
+          example: Buddy
+        petType:
+          type: string
+          example: dog
+        petBreed:
+          type: string
+          example: Labrador
+        petAge:
+          type: integer
+          nullable: true
+          example: 3
+        unitPrice:
+          type: number
+          example: 45
+    ServiceBooking:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        scheduledAt:
+          type: string
+          format: date-time
+        reminderType:
+          type: string
+          enum: [none, day_before, week_before]
+        status:
+          type: string
+          enum: [pending, completed]
+        paymentStatus:
+          type: string
+          enum: [paid, unpaid]
+        subtotal:
+          type: number
+          example: 90
+        taxPercent:
+          type: number
+          example: 5
+        taxAmount:
+          type: number
+          example: 4.5
+        total:
+          type: number
+          example: 94.5
+        currency:
+          type: string
+          example: usd
+        paymentReceiptUrl:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookingItem"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BookingCreateInput:
+      type: object
+      required: [scheduledAt]
+      properties:
+        serviceIds:
+          type: array
+          items:
+            type: string
+        selectAllServices:
+          type: boolean
+        petIds:
+          type: array
+          items:
+            type: string
+        selectAllPets:
+          type: boolean
+        scheduledAt:
+          type: string
+          format: date-time
+        reminderType:
+          type: string
+          enum: [none, day_before, week_before]
+        providerId:
+          type: string
+    BookingConfirmResponse:
+      type: object
+      properties:
+        bookingId:
+          type: string
+        services:
+          type: array
+          items:
+            type: string
+        appointmentDateTime:
+          type: string
+          format: date-time
+        organizationName:
+          type: string
+          example: Carely Pets
+        pets:
+          type: array
+          items:
+            type: string
+    BookingListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceBooking"
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, completed]
     PetType:
       type: object
       properties:
@@ -377,6 +680,477 @@ components:
           type: string
           example: Golden Retriever
 paths:
+  /admin/settings/services:
+    get:
+      tags: [AdminServiceSettings]
+      summary: Get all service settings
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Services list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ServiceCatalog"
+        "401":
+          description: Unauthorized
+    post:
+      tags: [AdminServiceSettings]
+      summary: Create service setting
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, type, price]
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [vet, grooming, training, walking]
+                price:
+                  type: number
+                isActive:
+                  type: boolean
+      responses:
+        "201":
+          description: Service created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/ServiceCatalog"
+        "400":
+          description: Validation failed
+  /admin/settings/services/{id}:
+    patch:
+      tags: [AdminServiceSettings]
+      summary: Update service setting
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Service updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/ServiceCatalog"
+        "404":
+          description: Service not found
+    delete:
+      tags: [AdminServiceSettings]
+      summary: Delete service setting
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Service not found
+  /admin/settings/tax:
+    get:
+      tags: [AdminServiceSettings]
+      summary: Get active tax percentage
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Active tax
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TaxSettingResponse"
+    post:
+      tags: [AdminServiceSettings]
+      summary: Set active tax percentage
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [percent]
+              properties:
+                percent:
+                  type: number
+      responses:
+        "201":
+          description: Tax updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TaxSettingResponse"
+        "400":
+          description: Validation failed
+  /admin/settings/availability:
+    get:
+      tags: [AdminServiceSettings]
+      summary: Get availability settings
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Availability settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AvailabilitySettingResponse"
+    patch:
+      tags: [AdminServiceSettings]
+      summary: Update availability settings
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilitySettingResponse"
+      responses:
+        "200":
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AvailabilitySettingResponse"
+        "400":
+          description: Validation failed
+    patch:
+      tags: [AdminServiceSettings]
+      summary: Update active tax percentage
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [percent]
+              properties:
+                percent:
+                  type: number
+      responses:
+        "200":
+          description: Tax updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TaxSettingResponse"
+        "400":
+          description: Validation failed
+  /services:
+    get:
+      tags: [UserServices]
+      summary: Get available services and tax
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Available services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      services:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ServiceCatalog"
+                      taxPercent:
+                        type: number
+        "401":
+          description: Unauthorized
+  /bookings:
+    get:
+      tags: [UserBookings]
+      summary: Get booking history
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, pending, completed]
+            default: all
+        - name: paymentStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, paid, unpaid]
+            default: all
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Booking history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/BookingListResponse"
+    post:
+      tags: [UserBookings]
+      summary: Create service booking and payment intent
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreateInput"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      booking:
+                        $ref: "#/components/schemas/ServiceBooking"
+                      clientSecret:
+                        type: string
+        "400":
+          description: Validation failed
+  /bookings/availability:
+    get:
+      tags: [UserBookings]
+      summary: Get available time slots for a date
+      security:
+        - AccessToken: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-12-31"
+      responses:
+        "200":
+          description: Available slots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                      slots:
+                        type: array
+                        items:
+                          type: string
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+  /payments:
+    get:
+      tags: [UserPayments]
+      summary: Get payment history
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, pending, completed]
+            default: all
+        - name: paymentStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, paid, unpaid]
+            default: paid
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/BookingListResponse"
+  /webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Stripe webhook (payment_intent.succeeded)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Webhook received
+        "400":
+          description: Invalid webhook signature
+        "500":
+          description: Webhook not configured
+  /bookings/{id}/confirm:
+    post:
+      tags: [UserBookings]
+      summary: Confirm payment for a booking
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/BookingConfirmResponse"
+        "400":
+          description: Payment not completed
+        "404":
+          description: Booking not found
   /admin/auth/login:
     post:
       tags: [AdminAuth]
@@ -796,6 +1570,154 @@ paths:
                 type: string
         "401":
           description: Unauthorized
+  /admin/services:
+    get:
+      tags: [AdminServiceManagement]
+      summary: Get all service requests
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, pending, completed]
+            default: all
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Service requests list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ServiceRequestSummary"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+        "401":
+          description: Unauthorized
+  /admin/services/{id}:
+    get:
+      tags: [AdminServiceManagement]
+      summary: Get service request details
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service request details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/ServiceRequestDetails"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Service request not found
+    delete:
+      tags: [AdminServiceManagement]
+      summary: Delete service request
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service request deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+        "404":
+          description: Service request not found
+  /admin/services/{id}/status:
+    patch:
+      tags: [AdminServiceManagement]
+      summary: Update service request status
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateServiceStatusInput"
+      responses:
+        "200":
+          description: Service status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+        "404":
+          description: Service request not found
   /admin/users/{id}:
     get:
       tags: [AdminUsers]

@@ -32,6 +32,12 @@ const envSchema = z.object({
 // Resend (for emails)
   RESEND_API_KEY: z.string().nonempty("RESEND_API_KEY is required for email sending"),
   RESEND_FROM: z.string().nonempty("RESEND_FROM is required for email sending"),
+
+// Stripe configuration
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_CURRENCY: z.string().default("usd"),
+  ORG_NAME: z.string().default("Carely Pets"),
 });
 
 try {

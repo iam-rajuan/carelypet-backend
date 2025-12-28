@@ -6,6 +6,9 @@ import uploadsModule from "./uploads";
 import adoptionModule from "./adoption";
 import providersModule from "./providers";
 import appointmentsModule from "./appointments";
+import servicesModule from "./services";
+import bookingsModule from "./bookings";
+import paymentsModule from "./payments";
 
 export interface UserModuleDefinition {
   name: string;
@@ -21,6 +24,9 @@ const userModules: UserModuleDefinition[] = [
   adoptionModule,
   providersModule,
   appointmentsModule,
+  servicesModule,
+  bookingsModule,
+  paymentsModule,
 ];
 
 export default userModules;

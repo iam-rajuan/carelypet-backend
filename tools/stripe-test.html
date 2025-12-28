@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stripe Test Payment</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 32px;
+        max-width: 600px;
+      }
+      label {
+        display: block;
+        margin-top: 12px;
+        font-weight: bold;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 6px;
+        box-sizing: border-box;
+      }
+      #card-element {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 6px;
+        border-radius: 4px;
+      }
+      button {
+        margin-top: 16px;
+        padding: 10px 16px;
+        font-weight: bold;
+      }
+      pre {
+        background: #f7f7f7;
+        padding: 12px;
+        margin-top: 16px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stripe Test Payment</h1>
+    <p>
+      Use a Stripe test card like <code>4242 4242 4242 4242</code> with any
+      future expiry and any CVC.
+    </p>
+    <label for="publishableKey">Stripe Publishable Key</label>
+    <input id="publishableKey" placeholder="pk_test_..." />
+
+    <label for="clientSecret">PaymentIntent Client Secret</label>
+    <input id="clientSecret" placeholder="pi_..._secret_..." />
+
+    <label>Card</label>
+    <div id="card-element"></div>
+
+    <label for="name">Name on Card</label>
+    <input id="name" placeholder="Test User" />
+
+    <button id="payButton">Confirm Payment</button>
+
+    <pre id="result"></pre>
+
+    <script>
+      let stripe;
+      let card;
+
+      const resultEl = document.getElementById("result");
+
+      function setResult(value) {
+        resultEl.textContent = value;
+      }
+
+      function initStripe() {
+        const key = document.getElementById("publishableKey").value.trim();
+        if (!key) {
+          setResult("Enter a Stripe publishable key.");
+          return;
+        }
+        stripe = Stripe(key);
+        const elements = stripe.elements();
+        card = elements.create("card");
+        card.mount("#card-element");
+        setResult("Stripe initialized.");
+      }
+
+      document
+        .getElementById("publishableKey")
+        .addEventListener("change", initStripe);
+
+      document.getElementById("payButton").addEventListener("click", async () => {
+        if (!stripe || !card) {
+          setResult("Initialize Stripe with your publishable key first.");
+          return;
+        }
+        const clientSecret = document.getElementById("clientSecret").value.trim();
+        if (!clientSecret) {
+          setResult("Client secret is required.");
+          return;
+        }
+        const name = document.getElementById("name").value.trim();
+        setResult("Confirming payment...");
+
+        const { error, paymentIntent } = await stripe.confirmCardPayment(
+          clientSecret,
+          {
+            payment_method: {
+              card,
+              billing_details: { name: name || "Test User" },
+            },
+          }
+        );
+
+        if (error) {
+          setResult(`Error: ${error.message}`);
+          return;
+        }
+        setResult(`Success: ${paymentIntent.status}`);
+      });
+    </script>
+  </body>
+</html>

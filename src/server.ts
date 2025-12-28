@@ -3,6 +3,7 @@ import app from "./app";
 import connectDB from "./config/db";
 import { env } from "./env";
 import { startUserDeletionJob } from "./jobs/userDeletion.job";
+import { startServiceReminderJob } from "./jobs/serviceReminder.job";
 
 
 
@@ -12,6 +13,7 @@ async function startServer() {
     console.log("MongoDB connected");
 
     startUserDeletionJob();
+    startServiceReminderJob();
 
     const server = http.createServer(app);
 

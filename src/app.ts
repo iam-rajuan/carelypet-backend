@@ -7,6 +7,7 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import routes from "./routes";
+import { handleStripeWebhook } from "./webhooks/stripe.webhook";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
+app.post("/api/v1/webhooks/stripe", express.raw({ type: "application/json" }), handleStripeWebhook);
 app.use(express.json());
 app.use(morgan("dev"));
 
