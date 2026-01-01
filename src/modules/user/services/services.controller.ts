@@ -9,7 +9,7 @@ export const listServices = async (_req: Request, res: Response) => {
     ]);
     res.json({ success: true, data: { services, taxPercent } });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to fetch services.";
+    const message = err instanceof Error ? err.message : "Failed to fetch services";
     res.status(400).json({ success: false, message });
   }
 };
