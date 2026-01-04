@@ -8,6 +8,7 @@ import {
   VerifyEmailInput,
   ResendEmailOtpInput,
   ForgotPasswordInput,
+  VerifyResetPasswordOtpInput,
   ResetPasswordInput,
   CompleteProfileInput,
 } from "./auth.validation";
@@ -216,7 +217,7 @@ export const resetPassword = async (
   res: Response
 ) => {
   try {
-    await authService.resetPasswordWithOtp(req.body);
+    await authService.resetPasswordAfterOtp(req.body);
     res.json({
       success: true,
       message: "Password reset successful",
@@ -227,6 +228,21 @@ export const resetPassword = async (
   }
 };
 
+export const verifyResetPasswordOtp = async (
+  req: Request<unknown, unknown, VerifyResetPasswordOtpInput>,
+  res: Response
+) => {
+  try {
+    await authService.verifyResetPasswordOtp(req.body);
+    res.json({
+      success: true,
+      message: "OTP verified",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "OTP verification failed";
+    res.status(400).json({ success: false, message });
+  }
+};
 
 
 

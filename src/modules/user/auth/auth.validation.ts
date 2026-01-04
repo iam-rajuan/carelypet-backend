@@ -23,7 +23,7 @@ export const refreshTokenSchema = z.object({
 
 export const verifyEmailSchema = z.object({
   email: z.email("Invalid email format").trim(),
-  otp: z.string().trim().length(4, "OTP must be 6 digits"),
+  otp: z.string().trim().length(4, "OTP must be 4 digits"),
 });
 
 export const resendEmailOtpSchema = z.object({
@@ -36,8 +36,12 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   email: z.email("Invalid email format").trim(),
-  otp: z.string().trim().length(6, "OTP must be 6 digits"),
   password: z.string().trim().min(6, "Password must be at least 6 characters"),
+});
+
+export const verifyResetPasswordOtpSchema = z.object({
+  email: z.email("Invalid email format").trim(),
+  otp: z.string().trim().length(4, "OTP must be 4 digits"),
 });
 
 export const sendPhoneOtpSchema = z.object({
@@ -50,7 +54,7 @@ export const sendPhoneOtpSchema = z.object({
 
 export const verifyPhoneOtpSchema = z.object({
   phone: z.string().trim().regex(/^[0-9]{10}$/, "Phone must be a 10-digit US number"),
-  otp: z.string().trim().length(6, "OTP must be 6 digits"),
+  otp: z.string().trim().length(4, "OTP must be 4 digits"),
 });
 
 const avatarUrlSchema = z.preprocess(
@@ -94,6 +98,7 @@ export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendEmailOtpInput = z.infer<typeof resendEmailOtpSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyResetPasswordOtpInput = z.infer<typeof verifyResetPasswordOtpSchema>;
 export type SendPhoneOtpInput = z.infer<typeof sendPhoneOtpSchema>;
 export type VerifyPhoneOtpInput = z.infer<typeof verifyPhoneOtpSchema>;
 export type CompleteProfileInput = z.infer<typeof completeProfileSchema>;

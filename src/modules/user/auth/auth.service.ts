@@ -9,6 +9,7 @@ import {
   VerifyEmailInput,
   ResendEmailOtpInput,
   ForgotPasswordInput,
+  VerifyResetPasswordOtpInput,
   ResetPasswordInput,
   CompleteProfileInput,
 } from "./auth.validation";
@@ -494,11 +495,10 @@ export const requestPasswordReset = async ({ email }: ForgotPasswordInput): Prom
   });
 };
 
-export const resetPasswordWithOtp = async ({
+export const verifyResetPasswordOtp = async ({
   email,
   otp,
-  password,
-}: ResetPasswordInput): Promise<void> => {
+}: VerifyResetPasswordOtpInput): Promise<void> => {
   const normalizedEmail = email.trim().toLowerCase();
   const user = await User.findOne({ email: normalizedEmail });
 
@@ -512,10 +512,30 @@ export const resetPasswordWithOtp = async ({
     throw new Error("Invalid or expired OTP");
   }
 
-  const hashed = await hashPassword(password);
-  user.password = hashed;
   user.resetPasswordToken = null;
   user.resetPasswordExpires = null;
+  user.resetPasswordVerifiedExpires = addMinutes(10);
+  await user.save();
+};
+
+export const resetPasswordAfterOtp = async ({
+  email,
+  password,
+}: ResetPasswordInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (
+    !user ||
+    !user.resetPasswordVerifiedExpires ||
+    user.resetPasswordVerifiedExpires < new Date()
+  ) {
+    throw new Error("OTP verification required");
+  }
+
+  const hashed = await hashPassword(password);
+  user.password = hashed;
+  user.resetPasswordVerifiedExpires = null;
   await user.save();
 };
 

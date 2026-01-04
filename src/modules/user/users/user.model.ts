@@ -24,6 +24,7 @@ export interface IUser extends Document {
   emailVerificationExpires?: Date | null;
   resetPasswordToken?: string | null;
   resetPasswordExpires?: Date | null;
+  resetPasswordVerifiedExpires?: Date | null;
   favorites?: string[];
   profileCompleted?: boolean;
   createdAt: Date;
@@ -97,6 +98,7 @@ const userSchema = new mongoose.Schema<IUser>(
     emailVerificationExpires: { type: Date, default: null },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    resetPasswordVerifiedExpires: { type: Date, default: null },
     favorites: {
       type: [String],
       default: [],

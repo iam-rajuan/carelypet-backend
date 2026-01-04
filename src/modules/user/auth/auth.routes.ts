@@ -9,6 +9,7 @@ import {
   resendEmailOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyResetPasswordOtpSchema,
   completeProfileSchema,
   sendPhoneOtpSchema,
   verifyPhoneOtpSchema,
@@ -33,6 +34,11 @@ router.post(
   authController.completeProfile
 );
 router.post("/forgot-password", validate(forgotPasswordSchema), authController.forgotPassword);
+router.post(
+  "/verify-reset-otp",
+  validate(verifyResetPasswordOtpSchema),
+  authController.verifyResetPasswordOtp
+);
 router.post("/reset-password", validate(resetPasswordSchema), authController.resetPassword);
 router.get("/me", auth, authController.me);
 router.get("/admin-test", auth, requireRole("admin"), authController.adminTest);

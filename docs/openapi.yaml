@@ -97,7 +97,19 @@ components:
           example: jane@example.com
     ResetPasswordInput:
       type: object
-      required: [email, otp, password]
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          example: NewSecret123
+    VerifyResetPasswordOtpInput:
+      type: object
+      required: [email, otp]
       properties:
         email:
           type: string
@@ -105,11 +117,7 @@ components:
           example: jane@example.com
         otp:
           type: string
-          example: "123456"
-        password:
-          type: string
-          format: password
-          example: NewSecret123
+          example: "1234"
     CompleteProfileInput:
       type: object
       required: [username, country, avatarUrl]
@@ -1970,30 +1978,71 @@ paths:
     post:
       tags: [UserAuth]
       summary: Request password reset OTP
+      description: "Step 1/3: Request OTP by email. POST /api/user/auth/forgot-password {\"email\":\"user@example.com\"}"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/ForgotPasswordInput"
+            example:
+              email: user@example.com
       responses:
         "200":
           description: OTP sent if email exists
+          content:
+            application/json:
+              example:
+                success: true
+                message: If this email exists, an OTP has been sent
         "400":
           description: Request failed
+  /auth/verify-reset-otp:
+    post:
+      tags: [UserAuth]
+      summary: Verify password reset OTP
+      description: "Step 2/3: Verify OTP. POST /api/user/auth/verify-reset-otp {\"email\":\"user@example.com\",\"otp\":\"1234\"}"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyResetPasswordOtpInput"
+            example:
+              email: user@example.com
+              otp: "1234"
+      responses:
+        "200":
+          description: OTP verified
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP verified
+        "400":
+          description: OTP verification failed
   /auth/reset-password:
     post:
       tags: [UserAuth]
-      summary: Reset password with OTP
+      summary: Reset password after OTP verification
+      description: "Step 3/3: Change password (no OTP here). POST /api/user/auth/reset-password {\"email\":\"user@example.com\",\"password\":\"newPassword123\"}"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/ResetPasswordInput"
+            example:
+              email: user@example.com
+              password: newPassword123
       responses:
         "200":
           description: Password reset
+          content:
+            application/json:
+              example:
+                success: true
+                message: Password reset successful
         "400":
           description: Reset failed
   /uploads/user/avatar:
