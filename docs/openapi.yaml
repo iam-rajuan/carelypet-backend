@@ -12,6 +12,10 @@ tags:
   - name: UserBookings
   - name: UserServices
   - name: UserPayments
+  - name: UserPets
+  - name: UserProviders
+  - name: UserAppointments
+  - name: UserAdoption
   - name: Webhooks
   - name: AdminServiceSettings
   - name: AdminServiceManagement
@@ -59,7 +63,7 @@ components:
           example: jane@example.com
         otp:
           type: string
-          example: "123456"
+          example: "1234"
     ResendEmailOtpInput:
       type: object
       required: [email]
@@ -118,6 +122,64 @@ components:
         otp:
           type: string
           example: "1234"
+    SendPhoneOtpInput:
+      type: object
+      required: [phone, carrier]
+      properties:
+        phone:
+          type: string
+          example: "9876543210"
+        carrier:
+          type: string
+          enum: [verizon, att, tmobile, sprint]
+    VerifyPhoneOtpInput:
+      type: object
+      required: [phone, otp]
+      properties:
+        phone:
+          type: string
+          example: "9876543210"
+        otp:
+          type: string
+          example: "1234"
+    UpdateProfileInput:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        favorites:
+          type: array
+          items:
+            type: string
+        location:
+          $ref: "#/components/schemas/Location"
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+    UpdateAvatarInput:
+      type: object
+      required: [avatarUrl]
+      properties:
+        avatarUrl:
+          type: string
+          format: uri
     CompleteProfileInput:
       type: object
       required: [username, country, avatarUrl]
@@ -146,6 +208,157 @@ components:
         country:
           type: string
           example: IN
+    PetMedicalRecord:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Vaccination Record
+        documentUrl:
+          type: string
+          format: uri
+        uploadedAt:
+          type: string
+          format: date-time
+    Pet:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        owner:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+          nullable: true
+        age:
+          type: number
+          nullable: true
+        weightLbs:
+          type: number
+          nullable: true
+        gender:
+          type: string
+          enum: [male, female]
+          nullable: true
+        trained:
+          type: boolean
+          nullable: true
+        neutered:
+          type: boolean
+          nullable: true
+        personality:
+          type: array
+          items:
+            type: string
+        about:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        medicalRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/PetMedicalRecord"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PetCreateInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        age:
+          type: number
+        weightLbs:
+          type: number
+        gender:
+          type: string
+          enum: [male, female]
+        trained:
+          type: boolean
+        neutered:
+          type: boolean
+        personality:
+          type: array
+          items:
+            type: string
+        about:
+          type: string
+        bio:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        avatarUrl:
+          type: string
+          format: uri
+    PetUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        age:
+          type: number
+        weightLbs:
+          type: number
+        gender:
+          type: string
+          enum: [male, female]
+        trained:
+          type: boolean
+        neutered:
+          type: boolean
+        personality:
+          type: array
+          items:
+            type: string
+        about:
+          type: string
+        bio:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        avatarUrl:
+          type: string
+          format: uri
     User:
       type: object
       properties:
@@ -168,12 +381,18 @@ components:
         status:
           type: string
           enum: [active, deletion_request]
+        bio:
+          type: string
+          example: ""
         username:
           type: string
           example: jane_doe
         avatarUrl:
           type: string
           format: uri
+        address:
+          type: string
+          example: ""
         location:
           $ref: "#/components/schemas/Location"
         favorites:
@@ -183,6 +402,13 @@ components:
         isVerified:
           type: boolean
           example: true
+        isPhoneVerified:
+          type: boolean
+          example: false
+        pets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pet"
         profileCompleted:
           type: boolean
           example: true
@@ -190,6 +416,348 @@ components:
           type: string
           format: date-time
           nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProviderAvailability:
+      type: object
+      properties:
+        day:
+          type: integer
+          minimum: 0
+          maximum: 6
+        startTime:
+          type: string
+          example: "09:00"
+        endTime:
+          type: string
+          example: "17:00"
+        isActive:
+          type: boolean
+    ProviderLocation:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+    Provider:
+      type: object
+      properties:
+        id:
+          type: string
+        owner:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [vet, grooming, walking, training]
+        bio:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        location:
+          type: object
+          properties:
+            type:
+              type: string
+              example: Point
+            coordinates:
+              type: array
+              items:
+                type: number
+        verificationStatus:
+          type: string
+          enum: [pending, verified, rejected]
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        verifiedBy:
+          type: string
+          nullable: true
+        availability:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderAvailability"
+        averageRating:
+          type: number
+        ratingCount:
+          type: integer
+        distanceMeters:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProviderCreateInput:
+      type: object
+      required: [name, category]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [vet, grooming, walking, training]
+        bio:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        location:
+          $ref: "#/components/schemas/ProviderLocation"
+        availability:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderAvailability"
+    ProviderUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [vet, grooming, walking, training]
+        bio:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        location:
+          $ref: "#/components/schemas/ProviderLocation"
+        availability:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderAvailability"
+    ProviderVerifyInput:
+      type: object
+      required: [verificationStatus]
+      properties:
+        verificationStatus:
+          type: string
+          enum: [pending, verified, rejected]
+    ProviderReviewInput:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+    ProviderReview:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        user:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProviderListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Provider"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        customer:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AppointmentCreateInput:
+      type: object
+      required: [providerId, startTime, endTime]
+      properties:
+        providerId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        notes:
+          type: string
+    AppointmentStatusUpdateInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed]
+    AppointmentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    AdoptionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdoptionListing"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    AdoptionListing:
+      type: object
+      properties:
+        id:
+          type: string
+        pet:
+          type: string
+        owner:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+        status:
+          type: string
+          enum: [available, pending, adopted]
+        petName:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+          nullable: true
+        age:
+          type: number
+          nullable: true
+        gender:
+          type: string
+          enum: [male, female]
+          nullable: true
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+          nullable: true
+        contactPhone:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdoptionCreateInput:
+      type: object
+      required: [petId, title, location]
+      properties:
+        petId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactPhone:
+          type: string
+    AdoptionStatusUpdateInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [available, pending, adopted]
     AdminUserSummary:
       type: object
       properties:
@@ -1087,7 +1655,7 @@ paths:
           schema:
             type: string
             enum: [all, paid, unpaid]
-            default: paid
+            default: all
         - name: page
           in: query
           required: false
@@ -1907,9 +2475,25 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CompleteProfileInput"
+              type: object
+              required: [username, country]
+              properties:
+                username:
+                  type: string
+                country:
+                  type: string
+                avatarUrl:
+                  type: string
+                  format: uri
+                favorites:
+                  type: array
+                  items:
+                    type: string
+                file:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Profile completed
@@ -1974,6 +2558,50 @@ paths:
           description: Logged out
         "400":
           description: Logout failed
+  /auth/me:
+    get:
+      tags: [UserAuth]
+      summary: Get authenticated user
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: User authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+  /auth/admin-test:
+    get:
+      tags: [UserAuth]
+      summary: Admin-only test endpoint
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Admin access granted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
   /auth/forgot-password:
     post:
       tags: [UserAuth]
@@ -2045,6 +2673,67 @@ paths:
                 message: Password reset successful
         "400":
           description: Reset failed
+  /auth/phone/send-otp:
+    post:
+      tags: [UserAuth]
+      summary: Send phone OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendPhoneOtpInput"
+            example:
+              phone: "9876543210"
+              carrier: verizon
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              example:
+                success: true
+                message: OTP sent
+        "400":
+          description: Send failed
+  /auth/phone/verify-otp:
+    post:
+      tags: [UserAuth]
+      summary: Verify phone OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPhoneOtpInput"
+            example:
+              phone: "9876543210"
+              otp: "1234"
+      responses:
+        "200":
+          description: Phone verified or profile setup required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/User"
+                      tokens:
+                        $ref: "#/components/schemas/AuthTokens"
+                      needsProfileSetup:
+                        type: boolean
+                      setupToken:
+                        type: string
+        "400":
+          description: Verification failed
   /uploads/user/avatar:
     post:
       tags: [UserUploads]
@@ -2090,6 +2779,841 @@ paths:
           description: Upload failed
         "401":
           description: Unauthorized
+  /uploads/pets/{id}/avatar:
+    post:
+      tags: [UserUploads]
+      summary: Upload pet avatar
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Pet avatar uploaded
+          content:
+            application/json:
+              example:
+                success: true
+                message: Pet avatar uploaded
+        "400":
+          description: Upload failed
+        "404":
+          description: Pet not found
+  /uploads/pets/{id}/photos:
+    post:
+      tags: [UserUploads]
+      summary: Upload pet photos
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Pet photos uploaded
+          content:
+            application/json:
+              example:
+                success: true
+                message: Pet photos uploaded
+        "400":
+          description: Upload failed
+        "404":
+          description: Pet not found
+  /uploads/pets/{id}/documents:
+    post:
+      tags: [UserUploads]
+      summary: Upload pet document
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, file]
+              properties:
+                title:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Medical document uploaded
+          content:
+            application/json:
+              example:
+                success: true
+                message: Medical document uploaded
+        "400":
+          description: Upload failed
+        "404":
+          description: Pet not found
+  /uploads/pets/{id}/photos/{fileId}:
+    delete:
+      tags: [UserUploads]
+      summary: Delete pet photo
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Photo deleted
+        "404":
+          description: Photo not found
+  /uploads/pets/{id}/documents/{fileId}:
+    delete:
+      tags: [UserUploads]
+      summary: Delete pet document
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document deleted
+        "404":
+          description: Document not found
+  /pets:
+    get:
+      tags: [UserPets]
+      summary: Get my pets
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Pets list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Pet"
+        "401":
+          description: Unauthorized
+    post:
+      tags: [UserPets]
+      summary: Create pet (multipart with photos)
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, files]
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                species:
+                  type: string
+                breed:
+                  type: string
+                age:
+                  type: number
+                weightLbs:
+                  type: number
+                gender:
+                  type: string
+                  enum: [male, female]
+                trained:
+                  type: boolean
+                neutered:
+                  type: boolean
+                personality:
+                  type: array
+                  items:
+                    type: string
+                about:
+                  type: string
+                bio:
+                  type: string
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Pet created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Pet"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+  /pets/{id}:
+    get:
+      tags: [UserPets]
+      summary: Get pet by id
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Pet"
+        "404":
+          description: Pet not found
+    patch:
+      tags: [UserPets]
+      summary: Update pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetUpdateInput"
+      responses:
+        "200":
+          description: Pet updated
+        "404":
+          description: Pet not found
+    delete:
+      tags: [UserPets]
+      summary: Delete pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pet deleted
+        "404":
+          description: Pet not found
+  /providers:
+    get:
+      tags: [UserProviders]
+      summary: List providers
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [vet, grooming, walking, training]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, verified, rejected]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: minRating
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+        - name: lat
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+        - name: lng
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+        - name: radiusKm
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0.1
+            maximum: 200
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Providers list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/ProviderListResponse"
+        "400":
+          description: Validation failed
+    post:
+      tags: [UserProviders]
+      summary: Create provider profile
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderCreateInput"
+      responses:
+        "201":
+          description: Provider created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Provider"
+        "400":
+          description: Validation failed
+  /providers/{id}:
+    get:
+      tags: [UserProviders]
+      summary: Get provider by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Provider
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Provider"
+        "404":
+          description: Provider not found
+    patch:
+      tags: [UserProviders]
+      summary: Update provider profile
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderUpdateInput"
+      responses:
+        "200":
+          description: Provider updated
+        "404":
+          description: Provider not found
+    delete:
+      tags: [UserProviders]
+      summary: Delete provider profile
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Provider deleted
+        "404":
+          description: Provider not found
+  /providers/{id}/verify:
+    patch:
+      tags: [UserProviders]
+      summary: Verify provider (admin only)
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderVerifyInput"
+      responses:
+        "200":
+          description: Provider verification updated
+        "404":
+          description: Provider not found
+  /providers/{id}/reviews:
+    post:
+      tags: [UserProviders]
+      summary: Create or update provider review
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderReviewInput"
+      responses:
+        "201":
+          description: Review saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      review:
+                        $ref: "#/components/schemas/ProviderReview"
+                      provider:
+                        $ref: "#/components/schemas/Provider"
+        "400":
+          description: Validation failed
+        "404":
+          description: Provider not found
+  /appointments:
+    post:
+      tags: [UserAppointments]
+      summary: Book an appointment
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentCreateInput"
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Appointment"
+        "400":
+          description: Validation failed
+        "404":
+          description: Provider not found
+  /appointments/me/customer:
+    get:
+      tags: [UserAppointments]
+      summary: List customer appointments
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled, completed]
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Appointments list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AppointmentListResponse"
+        "400":
+          description: Validation failed
+  /appointments/me/provider:
+    get:
+      tags: [UserAppointments]
+      summary: List provider appointments
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled, completed]
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Appointments list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AppointmentListResponse"
+        "400":
+          description: Validation failed
+  /appointments/{id}/status:
+    patch:
+      tags: [UserAppointments]
+      summary: Update appointment status
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentStatusUpdateInput"
+      responses:
+        "200":
+          description: Appointment status updated
+        "404":
+          description: Appointment not found
+  /adoption:
+    get:
+      tags: [UserAdoption]
+      summary: List adoption listings
+      parameters:
+        - name: species
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: breed
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [available, pending, adopted]
+        - name: ageMin
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0
+        - name: ageMax
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Adoption listings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdoptionListResponse"
+        "400":
+          description: Validation failed
+    post:
+      tags: [UserAdoption]
+      summary: Create adoption listing
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdoptionCreateInput"
+      responses:
+        "201":
+          description: Adoption listing created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "400":
+          description: Validation failed
+  /adoption/{id}:
+    get:
+      tags: [UserAdoption]
+      summary: Get adoption listing by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption listing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "404":
+          description: Adoption listing not found
+    delete:
+      tags: [UserAdoption]
+      summary: Delete adoption listing
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption listing deleted
+        "404":
+          description: Adoption listing not found or not authorized
+  /adoption/{id}/status:
+    patch:
+      tags: [UserAdoption]
+      summary: Update adoption status (admin only)
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdoptionStatusUpdateInput"
+      responses:
+        "200":
+          description: Adoption status updated
+        "404":
+          description: Adoption listing not found
+  /adoption/me/listings:
+    get:
+      tags: [UserAdoption]
+      summary: List my adoption listings
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: User adoption listings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdoptionListing"
+        "401":
+          description: Unauthorized
   /users/me:
     get:
       tags: [UserProfiles]
@@ -2120,26 +3644,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                bio:
-                  type: string
-                phone:
-                  type: string
-                address:
-                  type: string
-                city:
-                  type: string
-                country:
-                  type: string
-                favorites:
-                  type: array
-                  items:
-                    type: string
-                location:
-                  $ref: "#/components/schemas/Location"
+              $ref: "#/components/schemas/UpdateProfileInput"
       responses:
         "200":
           description: Profile updated
@@ -2169,15 +3674,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [currentPassword, newPassword]
-              properties:
-                currentPassword:
-                  type: string
-                  format: password
-                newPassword:
-                  type: string
-                  format: password
+              $ref: "#/components/schemas/ChangePasswordInput"
       responses:
         "200":
           description: Password changed
@@ -2205,12 +3702,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [avatarUrl]
-              properties:
-                avatarUrl:
-                  type: string
-                  format: uri
+              $ref: "#/components/schemas/UpdateAvatarInput"
       responses:
         "200":
           description: Avatar updated

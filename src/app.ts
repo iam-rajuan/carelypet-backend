@@ -16,7 +16,8 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.post("/api/v1/webhooks/stripe", express.raw({ type: "application/json" }), handleStripeWebhook);
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(morgan("dev"));
 
 const openapiPath = path.join(__dirname, "..", "docs", "openapi.yaml");
