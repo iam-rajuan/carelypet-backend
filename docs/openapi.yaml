@@ -251,7 +251,7 @@ components:
           type: string
           nullable: true
         vaccinated:
-          type: string
+          type: boolean
           nullable: true
         neutered:
           type: string
@@ -307,7 +307,7 @@ components:
         trained:
           type: string
         vaccinated:
-          type: string
+          type: boolean
         neutered:
           type: string
         personality:
@@ -347,7 +347,7 @@ components:
         trained:
           type: string
         vaccinated:
-          type: string
+          type: boolean
         neutered:
           type: string
         personality:
@@ -2992,7 +2992,7 @@ paths:
                 trained:
                   type: string
                 vaccinated:
-                  type: string
+                  type: boolean
                 neutered:
                   type: string
                 personality:
