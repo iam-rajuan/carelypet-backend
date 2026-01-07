@@ -19,6 +19,8 @@ tags:
   - name: Webhooks
   - name: AdminServiceSettings
   - name: AdminServiceManagement
+  - name: AdminAdoption
+  - name: AdminAdoptionRequests
   - name: UserAuth
   - name: UserProfiles
   - name: UserUploads
@@ -248,13 +250,13 @@ components:
           enum: [male, female]
           nullable: true
         trained:
-          type: string
+          type: boolean
           nullable: true
         vaccinated:
           type: boolean
           nullable: true
         neutered:
-          type: string
+          type: boolean
           nullable: true
         personality:
           type: array
@@ -305,11 +307,11 @@ components:
           type: string
           enum: [male, female]
         trained:
-          type: string
+          type: boolean
         vaccinated:
           type: boolean
         neutered:
-          type: string
+          type: boolean
         personality:
           type: array
           items:
@@ -345,11 +347,11 @@ components:
           type: string
           enum: [male, female]
         trained:
-          type: string
+          type: boolean
         vaccinated:
           type: boolean
         neutered:
-          type: string
+          type: boolean
         personality:
           type: array
           items:
@@ -1059,6 +1061,40 @@ components:
         slotMinutes:
           type: integer
           example: 30
+    AdminAdoptionListItem:
+      type: object
+      properties:
+        id:
+          type: string
+        petType:
+          type: string
+        petBreed:
+          type: string
+        petAge:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [available, pending, adopted]
+        petName:
+          type: string
+    AdminAdoptionRequestListItem:
+      type: object
+      properties:
+        id:
+          type: string
+        customerName:
+          type: string
+        petType:
+          type: string
+        petBreed:
+          type: string
+        petAge:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [pending, delivered]
     BookingItem:
       type: object
       properties:
@@ -2116,6 +2152,343 @@ paths:
                     $ref: "#/components/schemas/PetBreed"
         "404":
           description: Pet breed not found
+  /admin/adoptions:
+    get:
+      tags: [AdminAdoption]
+      summary: List adoption pets
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [available, pending, adopted]
+      responses:
+        "200":
+          description: Adoption list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminAdoptionListItem"
+    post:
+      tags: [AdminAdoption]
+      summary: Create adoption pet listing
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [petName, petType, shelterName, shelterPhone, photos]
+              properties:
+                petName:
+                  type: string
+                petType:
+                  type: string
+                breed:
+                  type: string
+                petAge:
+                  type: number
+                weightLbs:
+                  type: number
+                gender:
+                  type: string
+                  enum: [male, female]
+                trained:
+                  type: boolean
+                vaccinated:
+                  type: boolean
+                neutered:
+                  type: boolean
+                personality:
+                  type: string
+                  description: JSON array or comma-separated list
+                aboutPet:
+                  type: string
+                shelterName:
+                  type: string
+                shelterPhone:
+                  type: string
+                avatarIndex:
+                  type: integer
+                healthRecords:
+                  type: string
+                  description: JSON array of health records with fileIndexes
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                healthFiles:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Adoption listing created
+  /admin/adoptions/{id}:
+    get:
+      tags: [AdminAdoption]
+      summary: Get adoption pet details
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption listing
+    patch:
+      tags: [AdminAdoption]
+      summary: Update adoption pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Adoption listing updated
+    delete:
+      tags: [AdminAdoption]
+      summary: Delete adoption pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption listing deleted
+  /admin/adoptions/{id}/health-records:
+    get:
+      tags: [AdminAdoption]
+      summary: List health records for adoption pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [vaccination, checkup, medication, tick_flea, surgery, dental, other]
+      responses:
+        "200":
+          description: Health records
+    post:
+      tags: [AdminAdoption]
+      summary: Add health record for adoption pet
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [type, recordDetails]
+              properties:
+                type:
+                  type: string
+                  enum: [vaccination, checkup, medication, tick_flea, surgery, dental, other]
+                recordDetails:
+                  type: string
+                  description: JSON string
+                veterinarian:
+                  type: string
+                  description: JSON string
+                vitalSigns:
+                  type: string
+                  description: JSON string
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Health record added
+  /admin/adoptions/{id}/health-records/{recordId}:
+    delete:
+      tags: [AdminAdoption]
+      summary: Delete health record
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Health record deleted
+  /admin/adoptions/{id}/status:
+    patch:
+      tags: [AdminAdoption]
+      summary: Update adoption status
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [available, pending, adopted]
+      responses:
+        "200":
+          description: Adoption status updated
+  /admin/adoptions/requests:
+    get:
+      tags: [AdminAdoptionRequests]
+      summary: List adoption requests
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, pending, delivered]
+      responses:
+        "200":
+          description: Adoption requests list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminAdoptionRequestListItem"
+  /admin/adoptions/requests/{id}:
+    get:
+      tags: [AdminAdoptionRequests]
+      summary: Get adoption request details
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption request
+    patch:
+      tags: [AdminAdoptionRequests]
+      summary: Update adoption request status
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, delivered]
+      responses:
+        "200":
+          description: Adoption request updated
+    delete:
+      tags: [AdminAdoptionRequests]
+      summary: Delete adoption request
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption request deleted
+  /adoption/{id}/request:
+    post:
+      tags: [UserAdoption]
+      summary: Request adoption
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Adoption request submitted
   /admin/users:
     get:
       tags: [AdminUsers]
@@ -2990,11 +3363,11 @@ paths:
                   type: string
                   enum: [male, female]
                 trained:
-                  type: string
+                  type: boolean
                 vaccinated:
                   type: boolean
                 neutered:
-                  type: string
+                  type: boolean
                 personality:
                   type: array
                   items:

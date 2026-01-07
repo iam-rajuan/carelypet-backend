@@ -80,6 +80,12 @@ router.post(
   adoptionController.createAdoptionListing
 );
 
+router.post(
+  "/:id/request",
+  validateParams(listingIdParamSchema),
+  adoptionController.requestAdoption
+);
+
 // Admin-only status management (Available/Pending/Adopted)
 router.patch(
   "/:id/status",

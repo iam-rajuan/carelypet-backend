@@ -101,3 +101,25 @@ export const deleteAdoptionListing = async (req: AuthRequest, res: Response) => 
     
   }
 };
+
+export const requestAdoption = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    const request = await adoptionService.createAdoptionRequest(req.params.id, user.id);
+    res.status(201).json({
+      success: true,
+      data: request,
+      message: "Adoption request submitted",
+    });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to submit adoption request";
+    const status =
+      message === "Adoption listing not found" || message === "Adoption listing is already adopted"
+        ? 404
+        : 400;
+    res.status(status).json({ success: false, message });
+  }
+};

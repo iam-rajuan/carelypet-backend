@@ -1,0 +1,138 @@
+import AdoptionListing, { IAdoptionListing } from "../../user/adoption/adoption.model";
+import AdoptionRequest, {
+  IAdoptionRequest,
+} from "../../user/adoption/adoptionRequest.model";
+
+export const listAdoptionListings = async (
+  status?: string
+): Promise<IAdoptionListing[]> => {
+  const filter: Record<string, unknown> = {};
+  if (status) {
+    filter.status = status;
+  }
+  return AdoptionListing.find(filter).sort({ createdAt: -1 });
+};
+
+export const getAdoptionListing = async (id: string): Promise<IAdoptionListing> => {
+  const listing = await AdoptionListing.findById(id);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  return listing;
+};
+
+export const createAdoptionListing = async (
+  payload: Partial<IAdoptionListing>
+): Promise<IAdoptionListing> => {
+  return AdoptionListing.create(payload);
+};
+
+export const updateAdoptionListing = async (
+  id: string,
+  payload: Partial<IAdoptionListing>
+): Promise<IAdoptionListing> => {
+  const listing = await AdoptionListing.findById(id);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  Object.assign(listing, payload);
+  await listing.save();
+  return listing;
+};
+
+export const deleteAdoptionListing = async (id: string): Promise<void> => {
+  const listing = await AdoptionListing.findById(id);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  await listing.deleteOne();
+};
+
+export const listAdoptionRequests = async (
+  status?: string
+): Promise<IAdoptionRequest[]> => {
+  const filter: Record<string, unknown> = {};
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+  return AdoptionRequest.find(filter)
+    .sort({ createdAt: -1 })
+    .populate("customer", "name")
+    .populate("listing", "species breed age status");
+};
+
+export const getAdoptionRequest = async (id: string): Promise<IAdoptionRequest> => {
+  const request = await AdoptionRequest.findById(id)
+    .populate("customer", "name phone")
+    .populate("listing", "species breed age status petName");
+  if (!request) {
+    throw new Error("Adoption request not found");
+  }
+  return request;
+};
+
+export const updateAdoptionRequestStatus = async (
+  id: string,
+  status: "pending" | "delivered"
+): Promise<IAdoptionRequest> => {
+  const request = await AdoptionRequest.findById(id);
+  if (!request) {
+    throw new Error("Adoption request not found");
+  }
+  request.status = status;
+  await request.save();
+  return request;
+};
+
+export const deleteAdoptionRequest = async (id: string): Promise<void> => {
+  const request = await AdoptionRequest.findById(id);
+  if (!request) {
+    throw new Error("Adoption request not found");
+  }
+  await request.deleteOne();
+};
+
+export const addHealthRecord = async (
+  listingId: string,
+  record: NonNullable<IAdoptionListing["healthRecords"]>[number]
+): Promise<IAdoptionListing> => {
+  const listing = await AdoptionListing.findById(listingId);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  listing.healthRecords = listing.healthRecords || [];
+  listing.healthRecords.push(record);
+  await listing.save();
+  return listing;
+};
+
+export const listHealthRecords = async (
+  listingId: string,
+  type?: string
+): Promise<NonNullable<IAdoptionListing["healthRecords"]>> => {
+  const listing = await AdoptionListing.findById(listingId).select("healthRecords");
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  const records = listing.healthRecords || [];
+  if (!type) return records;
+  return records.filter((record) => record.type === type);
+};
+
+export const deleteHealthRecord = async (
+  listingId: string,
+  recordId: string
+): Promise<void> => {
+  const listing = await AdoptionListing.findById(listingId);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  const before = listing.healthRecords?.length || 0;
+  listing.healthRecords = (listing.healthRecords || []).filter(
+    (record: any) => record._id?.toString() !== recordId
+  );
+  if ((listing.healthRecords?.length || 0) === before) {
+    throw new Error("Health record not found");
+  }
+  await listing.save();
+};

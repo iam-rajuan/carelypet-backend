@@ -2,6 +2,7 @@ import AdoptionListing, { IAdoptionListing, AdoptionStatus } from "./adoption.mo
 import { CreateAdoptionListingInput, ListingQueryInput } from "./adoption.validation";
 import { ensureOwnedPet } from "../pets/pets.service";
 import User from "../users/user.model";
+import AdoptionRequest, { IAdoptionRequest } from "./adoptionRequest.model";
 
 export interface PaginatedAdoptionListings {
   data: IAdoptionListing[];
@@ -170,4 +171,28 @@ export const listUserAdoptionListings = async (
     createdAt: -1,
   });
   return listings;
+};
+
+export const createAdoptionRequest = async (
+  listingId: string,
+  userId: string
+): Promise<IAdoptionRequest> => {
+  const listing = await AdoptionListing.findById(listingId);
+  if (!listing) {
+    throw new Error("Adoption listing not found");
+  }
+  if (listing.status === "adopted") {
+    throw new Error("Adoption listing is already adopted");
+  }
+
+  const request = await AdoptionRequest.create({
+    listing: listingId,
+    customer: userId,
+    status: "pending",
+  });
+
+  listing.status = "pending";
+  await listing.save();
+
+  return request;
 };
