@@ -30,6 +30,7 @@ export const createPet = async (ownerId: string, payload: CreatePetInput): Promi
     weightLbs: payload.weightLbs,
     gender: payload.gender,
     trained: payload.trained,
+    vaccinated: payload.vaccinated,
     neutered: payload.neutered,
     personality,
     bio: about?.trim(),
@@ -63,6 +64,7 @@ export const updatePet = async (
   if (payload.weightLbs !== undefined) pet.weightLbs = payload.weightLbs;
   if (payload.gender !== undefined) pet.gender = payload.gender;
   if (payload.trained !== undefined) pet.trained = payload.trained;
+  if (payload.vaccinated !== undefined) pet.vaccinated = payload.vaccinated;
   if (payload.neutered !== undefined) pet.neutered = payload.neutered;
   if (payload.personality !== undefined) {
     pet.personality = payload.personality

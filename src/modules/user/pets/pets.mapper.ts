@@ -11,6 +11,7 @@ export const toPetResponse = (pet: IPet) => ({
   weightLbs: pet.weightLbs,
   gender: pet.gender,
   trained: pet.trained,
+  vaccinated: pet.vaccinated,
   neutered: pet.neutered,
   personality: pet.personality || [],
   about: pet.bio,

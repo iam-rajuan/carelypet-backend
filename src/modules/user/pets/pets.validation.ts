@@ -5,13 +5,14 @@ const bioSchema = z.string().trim().max(1000, "About must be at most 1000 charac
 const photoUrlSchema = z.string().trim().url("Invalid photo URL");
 const avatarUrlSchema = z.string().trim().url("Invalid avatar URL");
 const yesNoSchema = z.preprocess((value) => {
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
   if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "yes") return true;
-    if (normalized === "no") return false;
+    return value.trim();
   }
   return value;
-}, z.boolean());
+}, z.string().min(1));
 const nonNegativeNumber = (message: string) =>
   z.preprocess((value) => {
     if (typeof value === "string") {
@@ -58,6 +59,7 @@ export const createPetSchema = z.object({
   weightLbs: nonNegativeNumber("Weight must be zero or positive").optional(),
   gender: z.enum(["male", "female"]).optional(),
   trained: yesNoSchema.optional(),
+  vaccinated: yesNoSchema.optional(),
   neutered: yesNoSchema.optional(),
   personality: personalitySchema.optional(),
   about: bioSchema.optional(),
@@ -83,6 +85,7 @@ export const updatePetSchema = z.object({
   weightLbs: nonNegativeNumber("Weight must be zero or positive").optional(),
   gender: z.enum(["male", "female"]).optional(),
   trained: yesNoSchema.optional(),
+  vaccinated: yesNoSchema.optional(),
   neutered: yesNoSchema.optional(),
   personality: personalitySchema.optional(),
   about: bioSchema.optional(),
