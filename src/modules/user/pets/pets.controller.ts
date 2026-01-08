@@ -88,6 +88,99 @@ export const updatePet = async (req: AuthRequest, res: Response) => {
   try {
     const userId = requireUser(req, res);
     if (!userId) return;
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | Express.Multer.File[]
+      | undefined;
+    const photoFiles = Array.isArray(files)
+      ? files
+      : (files?.files as Express.Multer.File[] | undefined);
+    const avatarFiles = Array.isArray(files)
+      ? undefined
+      : (files?.avatar as Express.Multer.File[] | undefined);
+
+    const hasNewPhotos = Array.isArray(photoFiles) && photoFiles.length > 0;
+    const hasNewAvatar = Array.isArray(avatarFiles) && avatarFiles.length > 0;
+    const keepPhotos = req.body.keepPhotos as string[] | undefined;
+    const deletePhotos = req.body.deletePhotos as string[] | undefined;
+    const hasKeepPhotos = Array.isArray(keepPhotos) && keepPhotos.length > 0;
+    const hasDeletePhotos = Array.isArray(deletePhotos) && deletePhotos.length > 0;
+    const hasPhotoListMutation = hasKeepPhotos || hasDeletePhotos;
+
+    if (hasNewPhotos || hasNewAvatar || hasPhotoListMutation) {
+      const existingPet = await petsService.findPetById(userId, req.params.id);
+      const uploadedPhotos = hasNewPhotos
+        ? await Promise.all(
+            photoFiles.map((file) =>
+              uploadsService.uploadFileToS3(file.buffer, file.mimetype, "pets/photos")
+            )
+          )
+        : [];
+      const uploadedAvatar = hasNewAvatar
+        ? await uploadsService.uploadFileToS3(
+            avatarFiles[0].buffer,
+            avatarFiles[0].mimetype,
+            "pets/avatars"
+          )
+        : undefined;
+
+      const matchesPhoto = (photo: string, target: string) =>
+        photo === target || photo.endsWith(target);
+      const uploadedPhotoUrls = uploadedPhotos.map((item) => item.url);
+      const currentPhotos = existingPet.photos || [];
+      const shouldReplaceAllPhotos = hasNewPhotos && !hasPhotoListMutation;
+      let nextPhotos = shouldReplaceAllPhotos ? [] : currentPhotos.slice();
+
+      if (hasKeepPhotos) {
+        nextPhotos = nextPhotos.filter((photo) =>
+          keepPhotos.some((keep) => matchesPhoto(photo, keep))
+        );
+      }
+      if (hasDeletePhotos) {
+        nextPhotos = nextPhotos.filter(
+          (photo) => !deletePhotos.some((remove) => matchesPhoto(photo, remove))
+        );
+      }
+      if (hasNewPhotos) {
+        nextPhotos = shouldReplaceAllPhotos
+          ? uploadedPhotoUrls
+          : [...nextPhotos, ...uploadedPhotoUrls];
+      }
+
+      const previousAvatar = hasNewAvatar ? existingPet.avatarUrl : undefined;
+
+      try {
+        const removedPhotos = currentPhotos.filter(
+          (photo) => !nextPhotos.some((next) => matchesPhoto(photo, next))
+        );
+        if (removedPhotos.length > 0) {
+          await Promise.all(
+            removedPhotos
+              .filter((photo) => photo.includes(".amazonaws.com/"))
+              .map((photo) =>
+                uploadsService.deleteFileFromS3(uploadsService.extractKeyFromUrl(photo))
+              )
+          );
+        }
+        if (previousAvatar && previousAvatar.includes(".amazonaws.com/")) {
+          await uploadsService.deleteFileFromS3(uploadsService.extractKeyFromUrl(previousAvatar));
+        }
+      } catch (err) {
+        await Promise.all(
+          uploadedPhotos.map((item) =>
+            uploadsService.deleteFileFromS3(item.key).catch(() => undefined)
+          )
+        );
+        if (uploadedAvatar) {
+          await uploadsService.deleteFileFromS3(uploadedAvatar.key).catch(() => undefined);
+        }
+        throw err;
+      }
+
+      if (hasNewPhotos || hasPhotoListMutation) req.body.photos = nextPhotos;
+      if (hasNewAvatar) req.body.avatarUrl = uploadedAvatar?.url;
+    }
+
     const pet = await petsService.updatePet(userId, req.params.id, req.body);
     res.json({ success: true, data: toPetResponse(pet), message: "Pet updated" });
   } catch (err) {

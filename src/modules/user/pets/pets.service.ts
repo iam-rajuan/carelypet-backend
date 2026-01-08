@@ -75,6 +75,7 @@ export const updatePet = async (
   if (payload.about !== undefined) pet.bio = payload.about.trim();
   if (payload.bio !== undefined) pet.bio = payload.bio.trim();
   if (payload.photos !== undefined) pet.photos = payload.photos;
+  if (payload.avatarUrl !== undefined) pet.avatarUrl = payload.avatarUrl.trim();
 
   await pet.save();
   return pet;

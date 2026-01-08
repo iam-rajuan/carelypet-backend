@@ -3554,6 +3554,45 @@ paths:
       requestBody:
         required: true
         content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: New pet photos (max 3). Replaces previous photos when provided.
+                name:
+                  type: string
+                type:
+                  type: string
+                species:
+                  type: string
+                breed:
+                  type: string
+                age:
+                  type: number
+                weightLbs:
+                  type: number
+                gender:
+                  type: string
+                  enum: [male, female]
+                trained:
+                  type: boolean
+                vaccinated:
+                  type: boolean
+                neutered:
+                  type: boolean
+                personality:
+                  type: array
+                  items:
+                    type: string
+                about:
+                  type: string
+                bio:
+                  type: string
           application/json:
             schema:
               $ref: "#/components/schemas/PetUpdateInput"

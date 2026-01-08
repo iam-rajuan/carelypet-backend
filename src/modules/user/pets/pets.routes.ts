@@ -31,7 +31,13 @@ router.use(auth);
 router.post("/", uploadPetCreateMedia, validate(createPetSchema), petsController.createPet);
 router.get("/", petsController.getMyPets);
 router.get("/:id", validateParams(petIdParamSchema), petsController.getPetById);
-router.patch("/:id", validateParams(petIdParamSchema), validate(updatePetSchema), petsController.updatePet);
+router.patch(
+  "/:id",
+  validateParams(petIdParamSchema),
+  uploadPetCreateMedia,
+  validate(updatePetSchema),
+  petsController.updatePet
+);
 router.delete("/:id", validateParams(petIdParamSchema), petsController.deletePet);
 
 export default router;

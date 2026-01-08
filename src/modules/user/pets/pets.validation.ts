@@ -6,7 +6,11 @@ const photoUrlSchema = z.string().trim().url("Invalid photo URL");
 const avatarUrlSchema = z.string().trim().url("Invalid avatar URL");
 const yesNoBooleanSchema = z
   .union([z.boolean(), z.string()])
-  .transform((val) => val === true || val === "true");
+  .transform((val) => {
+    if (typeof val === "boolean") return val;
+    const normalized = val.trim().toLowerCase();
+    return normalized === "true" || normalized === "yes";
+  });
 const nonNegativeNumber = (message: string) =>
   z.preprocess((value) => {
     if (typeof value === "string") {
@@ -27,6 +31,22 @@ const numberSchema = z.preprocess((value) => {
   }
   return value;
 }, z.number());
+const stringArraySchema = z.preprocess((value) => {
+  if (value === undefined) return undefined;
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // fall through to comma-separated parsing
+    }
+    return trimmed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return value;
+}, z.array(z.string().trim().min(1)));
 const personalitySchema = z.preprocess((value) => {
   if (value === undefined) return [];
   if (Array.isArray(value)) return value;
@@ -86,6 +106,8 @@ export const updatePetSchema = z.object({
   bio: bioSchema.optional(),
   photos: z.array(photoUrlSchema).optional(),
   avatarUrl: avatarUrlSchema.optional(),
+  keepPhotos: stringArraySchema.optional(),
+  deletePhotos: stringArraySchema.optional(),
 });
 
 export const petIdParamSchema = z.object({
