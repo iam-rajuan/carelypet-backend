@@ -16,6 +16,7 @@ tags:
   - name: UserProviders
   - name: UserAppointments
   - name: UserAdoption
+  - name: UserMessages
   - name: Webhooks
   - name: AdminServiceSettings
   - name: AdminServiceManagement
@@ -184,7 +185,7 @@ components:
           format: uri
     CompleteProfileInput:
       type: object
-      required: [username, country, avatarUrl]
+      required: [username, country]
       properties:
         username:
           type: string
@@ -368,6 +369,76 @@ components:
         avatarUrl:
           type: string
           format: uri
+        keepPhotos:
+          type: array
+          items:
+            type: string
+        deletePhotos:
+          type: array
+          items:
+            type: string
+    AuthTokenPayload:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        role:
+          type: string
+          example: user
+        type:
+          type: string
+          enum: [access, refresh, setup]
+        tokenVersion:
+          type: integer
+          nullable: true
+        iat:
+          type: integer
+        exp:
+          type: integer
+    UserAuthUser:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        phone:
+          type: string
+          example: "9876543210"
+        role:
+          type: string
+          example: user
+        status:
+          type: string
+          enum: [active, deletion_request]
+        username:
+          type: string
+          example: jane_doe
+        avatarUrl:
+          type: string
+          format: uri
+        address:
+          type: string
+          example: ""
+        location:
+          $ref: "#/components/schemas/Location"
+        favorites:
+          type: array
+          items:
+            type: string
+        isVerified:
+          type: boolean
+          example: true
+        profileCompleted:
+          type: boolean
+          example: true
     User:
       type: object
       properties:
@@ -852,6 +923,106 @@ components:
         status:
           type: string
           enum: [available, pending, adopted]
+    AdoptionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        listing:
+          type: string
+        customer:
+          type: string
+        status:
+          type: string
+          enum: [pending, delivered]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ConversationParticipant:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        role:
+          type: string
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        recipientId:
+          type: string
+        body:
+          type: string
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationParticipant"
+        otherParticipant:
+          $ref: "#/components/schemas/ConversationParticipant"
+        lastMessage:
+          $ref: "#/components/schemas/Message"
+        lastMessageAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    MessageCreateInput:
+      type: object
+      required: [recipientId, body]
+      properties:
+        recipientId:
+          type: string
+        body:
+          type: string
+    MessageListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
     AdminUserSummary:
       type: object
       properties:
@@ -1070,6 +1241,22 @@ components:
           type: string
           format: password
           example: AdminSecret123
+    AdminAuthUser:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1c3e2d2f2b70012a8b0aa
+        name:
+          type: string
+          example: Admin Name
+        email:
+          type: string
+          format: email
+          example: admin@petconnect.com
+        role:
+          type: string
+          enum: [admin]
     AdminProfile:
       type: object
       properties:
@@ -1140,6 +1327,19 @@ components:
         percent:
           type: number
           example: 5
+    AvailabilitySettingInput:
+      type: object
+      required: [startTime, endTime, slotMinutes]
+      properties:
+        startTime:
+          type: string
+          example: "09:00"
+        endTime:
+          type: string
+          example: "17:00"
+        slotMinutes:
+          type: integer
+          example: 30
     AvailabilitySettingResponse:
       type: object
       properties:
@@ -1186,6 +1386,159 @@ components:
         status:
           type: string
           enum: [pending, delivered]
+    AdminAdoptionRequestDetails:
+      type: object
+      properties:
+        id:
+          type: string
+        listing:
+          type: object
+          properties:
+            id:
+              type: string
+            species:
+              type: string
+            breed:
+              type: string
+              nullable: true
+            age:
+              type: integer
+              nullable: true
+            status:
+              type: string
+              enum: [available, pending, adopted]
+            petName:
+              type: string
+        customer:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            phone:
+              type: string
+              nullable: true
+        status:
+          type: string
+          enum: [pending, delivered]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminAdoptionCreateInput:
+      type: object
+      required: [petName, petType, shelterName, shelterPhone, photos]
+      properties:
+        petName:
+          type: string
+        petType:
+          type: string
+        breed:
+          type: string
+        petAge:
+          type: number
+        weightLbs:
+          type: number
+        gender:
+          type: string
+          enum: [male, female]
+        trained:
+          type: boolean
+        vaccinated:
+          type: boolean
+        neutered:
+          type: boolean
+        personality:
+          type: string
+          description: JSON array or comma-separated list
+        aboutPet:
+          type: string
+        location:
+          type: string
+        shelterName:
+          type: string
+        shelterPhone:
+          type: string
+        avatarIndex:
+          type: integer
+        healthRecords:
+          type: string
+          description: JSON array of health records with fileIndexes
+        photos:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items:
+            type: string
+            format: binary
+        healthFiles:
+          type: array
+          maxItems: 21
+          items:
+            type: string
+            format: binary
+    AdminAdoptionUpdateInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [available, pending, adopted]
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        petName:
+          type: string
+        species:
+          type: string
+        breed:
+          type: string
+        age:
+          type: number
+        petAge:
+          type: number
+          description: Alternate age input; mapped to age
+        weightLbs:
+          type: number
+        gender:
+          type: string
+          enum: [male, female]
+        trained:
+          type: boolean
+        vaccinated:
+          type: boolean
+        neutered:
+          type: boolean
+        personality:
+          type: array
+          items:
+            type: string
+        aboutPet:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        contactName:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        contactPhone:
+          type: string
+        shelterName:
+          type: string
+        shelterPhone:
+          type: string
     BookingItem:
       type: object
       properties:
@@ -1466,6 +1819,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  message:
+                    type: string
                   data:
                     $ref: "#/components/schemas/ServiceCatalog"
         "400":
@@ -1505,6 +1860,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  message:
+                    type: string
                   data:
                     $ref: "#/components/schemas/ServiceCatalog"
         "404":
@@ -1577,6 +1934,39 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/TaxSettingResponse"
+        "400":
+          description: Validation failed
+    patch:
+      tags: [AdminServiceSettings]
+      summary: Update active tax percentage
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [percent]
+              properties:
+                percent:
+                  type: number
+      responses:
+        "200":
+          description: Tax updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
                   data:
                     $ref: "#/components/schemas/TaxSettingResponse"
         "400":
@@ -1609,7 +1999,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AvailabilitySettingResponse"
+              $ref: "#/components/schemas/AvailabilitySettingInput"
       responses:
         "200":
           description: Availability updated
@@ -1620,37 +2010,10 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  message:
+                    type: string
                   data:
                     $ref: "#/components/schemas/AvailabilitySettingResponse"
-        "400":
-          description: Validation failed
-    patch:
-      tags: [AdminServiceSettings]
-      summary: Update active tax percentage
-      security:
-        - AccessToken: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [percent]
-              properties:
-                percent:
-                  type: number
-      responses:
-        "200":
-          description: Tax updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: "#/components/schemas/TaxSettingResponse"
         "400":
           description: Validation failed
   /services:
@@ -1909,7 +2272,7 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: "#/components/schemas/User"
+                        $ref: "#/components/schemas/AdminAuthUser"
                       tokens:
                         $ref: "#/components/schemas/AuthTokens"
         "400":
@@ -1953,6 +2316,15 @@ paths:
       responses:
         "200":
           description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "400":
           description: Logout failed
   /admin/auth/forgot-password:
@@ -1968,6 +2340,15 @@ paths:
       responses:
         "200":
           description: OTP sent if email exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "400":
           description: Request failed
   /admin/auth/reset-password:
@@ -1983,6 +2364,15 @@ paths:
       responses:
         "200":
           description: Password reset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "400":
           description: Reset failed
   /admin/profile:
@@ -2003,34 +2393,6 @@ paths:
                     type: boolean
                   data:
                     $ref: "#/components/schemas/AdminProfile"
-        "401":
-          description: Unauthorized
-  /admin/profile/password:
-    patch:
-      tags: [AdminProfile]
-      summary: Change admin password
-      security:
-        - AccessToken: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AdminChangePasswordInput"
-      responses:
-        "200":
-          description: Password changed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        "400":
-          description: Change failed
         "401":
           description: Unauthorized
     patch:
@@ -2060,6 +2422,34 @@ paths:
                     $ref: "#/components/schemas/AdminProfile"
         "400":
           description: Update failed
+        "401":
+          description: Unauthorized
+  /admin/profile/password:
+    patch:
+      tags: [AdminProfile]
+      summary: Change admin password
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Change failed
         "401":
           description: Unauthorized
   /admin/pet-types:
@@ -2265,6 +2655,31 @@ paths:
                     $ref: "#/components/schemas/PetBreed"
         "404":
           description: Pet breed not found
+    delete:
+      tags: [AdminPets]
+      summary: Delete pet breed
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pet breed deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Pet breed not found
   /admin/adoptions:
     get:
       tags: [AdminAdoption]
@@ -2302,55 +2717,21 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              required: [petName, petType, shelterName, shelterPhone, photos]
-              properties:
-                petName:
-                  type: string
-                petType:
-                  type: string
-                breed:
-                  type: string
-                petAge:
-                  type: number
-                weightLbs:
-                  type: number
-                gender:
-                  type: string
-                  enum: [male, female]
-                trained:
-                  type: boolean
-                vaccinated:
-                  type: boolean
-                neutered:
-                  type: boolean
-                personality:
-                  type: string
-                  description: JSON array or comma-separated list
-                aboutPet:
-                  type: string
-                shelterName:
-                  type: string
-                shelterPhone:
-                  type: string
-                avatarIndex:
-                  type: integer
-                healthRecords:
-                  type: string
-                  description: JSON array of health records with fileIndexes
-                photos:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                healthFiles:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
+              $ref: "#/components/schemas/AdminAdoptionCreateInput"
       responses:
         "201":
           description: Adoption listing created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
   /admin/adoptions/{id}:
     get:
       tags: [AdminAdoption]
@@ -2366,6 +2747,17 @@ paths:
       responses:
         "200":
           description: Adoption listing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "404":
+          description: Adoption listing not found
     patch:
       tags: [AdminAdoption]
       summary: Update adoption pet
@@ -2382,10 +2774,23 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              $ref: "#/components/schemas/AdminAdoptionUpdateInput"
       responses:
         "200":
           description: Adoption listing updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "404":
+          description: Adoption listing not found
     delete:
       tags: [AdminAdoption]
       summary: Delete adoption pet
@@ -2400,6 +2805,17 @@ paths:
       responses:
         "200":
           description: Adoption listing deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Adoption listing not found
   /admin/adoptions/{id}/health-records:
     get:
       tags: [AdminAdoption]
@@ -2421,6 +2837,19 @@ paths:
       responses:
         "200":
           description: Health records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdoptionHealthRecord"
+        "404":
+          description: Adoption listing not found
     post:
       tags: [AdminAdoption]
       summary: Add health record for adoption pet
@@ -2458,9 +2887,36 @@ paths:
                     type: string
                     format: binary
                   description: Up to 3 attachments
+          application/json:
+            schema:
+              type: object
+              required: [type, recordDetails]
+              properties:
+                type:
+                  type: string
+                  enum: [vaccination, checkup, medication, tick_flea, surgery, dental, other]
+                recordDetails:
+                  type: object
+                veterinarian:
+                  type: object
+                vitalSigns:
+                  type: object
       responses:
         "201":
           description: Health record added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "404":
+          description: Adoption listing not found
   /admin/adoptions/{id}/health-records/{recordId}:
     delete:
       tags: [AdminAdoption]
@@ -2481,6 +2937,17 @@ paths:
       responses:
         "200":
           description: Health record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Health record not found
   /admin/adoptions/{id}/status:
     patch:
       tags: [AdminAdoption]
@@ -2507,6 +2974,19 @@ paths:
       responses:
         "200":
           description: Adoption status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
+        "404":
+          description: Adoption listing not found
   /admin/adoptions/requests:
     get:
       tags: [AdminAdoptionRequests]
@@ -2549,6 +3029,43 @@ paths:
       responses:
         "200":
           description: Adoption request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdminAdoptionRequestDetails"
+        "404":
+          description: Adoption request not found
+    delete:
+      tags: [AdminAdoptionRequests]
+      summary: Delete adoption request
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption request deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Adoption request not found
+  /admin/adoptions/requests/{id}/status:
     patch:
       tags: [AdminAdoptionRequests]
       summary: Update adoption request status
@@ -2574,20 +3091,19 @@ paths:
       responses:
         "200":
           description: Adoption request updated
-    delete:
-      tags: [AdminAdoptionRequests]
-      summary: Delete adoption request
-      security:
-        - AccessToken: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Adoption request deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdminAdoptionRequestDetails"
+        "404":
+          description: Adoption request not found
   /adoption/{id}/request:
     post:
       tags: [UserAdoption]
@@ -2603,6 +3119,19 @@ paths:
       responses:
         "201":
           description: Adoption request submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionRequest"
+        "404":
+          description: Adoption listing not found
   /admin/users:
     get:
       tags: [AdminUsers]
@@ -2902,7 +3431,7 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: "#/components/schemas/User"
+                        $ref: "#/components/schemas/UserAuthUser"
                       needsProfileSetup:
                         type: boolean
                       setupToken:
@@ -2922,6 +3451,15 @@ paths:
       responses:
         "200":
           description: OTP resent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "400":
           description: Resend failed
   /auth/login:
@@ -2950,7 +3488,7 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: "#/components/schemas/User"
+                        $ref: "#/components/schemas/UserAuthUser"
                       tokens:
                         $ref: "#/components/schemas/AuthTokens"
                       needsProfileSetup:
@@ -3004,7 +3542,7 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: "#/components/schemas/User"
+                        $ref: "#/components/schemas/UserAuthUser"
                       tokens:
                         $ref: "#/components/schemas/AuthTokens"
         "400":
@@ -3050,6 +3588,15 @@ paths:
       responses:
         "200":
           description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "400":
           description: Logout failed
   /auth/me:
@@ -3071,7 +3618,7 @@ paths:
                   message:
                     type: string
                   user:
-                    $ref: "#/components/schemas/User"
+                    $ref: "#/components/schemas/AuthTokenPayload"
         "401":
           description: Unauthorized
   /auth/admin-test:
@@ -3093,7 +3640,7 @@ paths:
                   message:
                     type: string
                   user:
-                    $ref: "#/components/schemas/User"
+                    $ref: "#/components/schemas/AuthTokenPayload"
         "401":
           description: Unauthorized
   /auth/forgot-password:
@@ -3219,7 +3766,7 @@ paths:
                     type: object
                     properties:
                       user:
-                        $ref: "#/components/schemas/User"
+                        $ref: "#/components/schemas/UserAuthUser"
                       tokens:
                         $ref: "#/components/schemas/AuthTokens"
                       needsProfileSetup:
@@ -3301,9 +3848,24 @@ paths:
           description: Pet avatar uploaded
           content:
             application/json:
-              example:
-                success: true
-                message: Pet avatar uploaded
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      avatarUrl:
+                        type: string
+                        format: uri
+                      url:
+                        type: string
+                        format: uri
+                      key:
+                        type: string
         "400":
           description: Upload failed
         "404":
@@ -3330,6 +3892,8 @@ paths:
               properties:
                 files:
                   type: array
+                  minItems: 1
+                  maxItems: 5
                   items:
                     type: string
                     format: binary
@@ -3338,9 +3902,26 @@ paths:
           description: Pet photos uploaded
           content:
             application/json:
-              example:
-                success: true
-                message: Pet photos uploaded
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      photos:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              format: uri
+                            key:
+                              type: string
         "400":
           description: Upload failed
         "404":
@@ -3375,9 +3956,29 @@ paths:
           description: Medical document uploaded
           content:
             application/json:
-              example:
-                success: true
-                message: Medical document uploaded
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      document:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          documentUrl:
+                            type: string
+                            format: uri
+                          uploadedAt:
+                            type: string
+                            format: date-time
+                          key:
+                            type: string
         "400":
           description: Upload failed
         "404":
@@ -3402,6 +4003,15 @@ paths:
       responses:
         "200":
           description: Photo deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "404":
           description: Photo not found
   /uploads/pets/{id}/documents/{fileId}:
@@ -3424,6 +4034,15 @@ paths:
       responses:
         "200":
           description: Document deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "404":
           description: Document not found
   /pets:
@@ -3465,8 +4084,10 @@ paths:
                   type: string
                 type:
                   type: string
+                  description: Required when species is not provided.
                 species:
                   type: string
+                  description: Required when type is not provided.
                 breed:
                   type: string
                 age:
@@ -3492,6 +4113,8 @@ paths:
                   type: string
                 files:
                   type: array
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: string
                     format: binary
@@ -3560,10 +4183,14 @@ paths:
               properties:
                 files:
                   type: array
+                  maxItems: 3
                   items:
                     type: string
                     format: binary
                   description: New pet photos (max 3). Replaces previous photos when provided.
+                avatar:
+                  type: string
+                  format: binary
                 name:
                   type: string
                 type:
@@ -3593,12 +4220,31 @@ paths:
                   type: string
                 bio:
                   type: string
+                keepPhotos:
+                  type: array
+                  items:
+                    type: string
+                deletePhotos:
+                  type: array
+                  items:
+                    type: string
           application/json:
             schema:
               $ref: "#/components/schemas/PetUpdateInput"
       responses:
         "200":
           description: Pet updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/Pet"
         "404":
           description: Pet not found
     delete:
@@ -3615,6 +4261,15 @@ paths:
       responses:
         "200":
           description: Pet deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "404":
           description: Pet not found
   /providers:
@@ -3974,6 +4629,134 @@ paths:
           description: Appointment status updated
         "404":
           description: Appointment not found
+  /messages/conversations:
+    get:
+      tags: [UserMessages]
+      summary: List conversations
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Conversations list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "401":
+          description: Unauthorized
+  /messages/conversations/{id}/messages:
+    get:
+      tags: [UserMessages]
+      summary: List messages in a conversation
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Messages list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/MessageListResponse"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+        "404":
+          description: Conversation not found
+  /messages:
+    post:
+      tags: [UserMessages]
+      summary: Send a message
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageCreateInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Message"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+  /messages/conversations/{id}/read:
+    post:
+      tags: [UserMessages]
+      summary: Mark conversation as read
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversation marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      updated:
+                        type: integer
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+        "404":
+          description: Conversation not found
   /adoption:
     get:
       tags: [UserAdoption]
@@ -4102,6 +4885,15 @@ paths:
       responses:
         "200":
           description: Adoption listing deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
         "404":
           description: Adoption listing not found or not authorized
   /adoption/{id}/status:
@@ -4125,6 +4917,17 @@ paths:
       responses:
         "200":
           description: Adoption status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AdoptionListing"
         "404":
           description: Adoption listing not found
   /adoption/me/listings:
