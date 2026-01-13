@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PetConnect Realtime Messaging Test</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --accent: #22c55e;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --border: #1f2937;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(1200px 800px at 10% 10%, #1e293b 0%, #0b1220 45%, var(--bg) 100%);
+        color: var(--text);
+        padding: 24px;
+      }
+      h1 { margin: 0 0 12px; font-size: 22px; }
+      p { margin: 0 0 18px; color: var(--muted); }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        min-height: 420px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label { font-size: 12px; color: var(--muted); }
+      input, textarea, button {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+      }
+      textarea { min-height: 70px; resize: vertical; }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        color: #04110a;
+        font-weight: 600;
+        border: none;
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; }
+      .log {
+        background: #0a0f1c;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        flex: 1;
+        overflow: auto;
+        font-family: Consolas, Monaco, "Courier New", monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+      }
+      .status { font-size: 12px; color: var(--muted); }
+      .ok { color: #86efac; }
+      .bad { color: #fca5a5; }
+      .small { font-size: 11px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>Realtime Messaging Test</h1>
+    <p>Open two tabs. Use different access tokens and user IDs to verify real-time messaging.</p>
+
+    <div class="grid">
+      <div class="card" id="clientA">
+        <h2>Client A</h2>
+        <label>Base URL (socket server)</label>
+        <input type="text" id="aBaseUrl" value="http://localhost:3000" />
+        <label>Access token</label>
+        <input type="text" id="aToken" placeholder="paste access token" />
+        <label>Recipient userId (B)</label>
+        <input type="text" id="aRecipient" placeholder="paste user B id" />
+        <label>Message body</label>
+        <textarea id="aBody">Hello from A</textarea>
+        <div class="row">
+          <button id="aConnect">Connect</button>
+          <button id="aDisconnect" class="secondary">Disconnect</button>
+        </div>
+        <div class="row">
+          <button id="aSend">Send Message</button>
+          <button id="aJoin" class="secondary">Join Conversation</button>
+        </div>
+        <label>Conversation ID (optional)</label>
+        <input type="text" id="aConversation" placeholder="conversation id to join" />
+        <div class="status" id="aStatus">Status: disconnected</div>
+        <div class="log" id="aLog"></div>
+      </div>
+
+      <div class="card" id="clientB">
+        <h2>Client B</h2>
+        <label>Base URL (socket server)</label>
+        <input type="text" id="bBaseUrl" value="http://localhost:3000" />
+        <label>Access token</label>
+        <input type="text" id="bToken" placeholder="paste access token" />
+        <label>Recipient userId (A)</label>
+        <input type="text" id="bRecipient" placeholder="paste user A id" />
+        <label>Message body</label>
+        <textarea id="bBody">Hello from B</textarea>
+        <div class="row">
+          <button id="bConnect">Connect</button>
+          <button id="bDisconnect" class="secondary">Disconnect</button>
+        </div>
+        <div class="row">
+          <button id="bSend">Send Message</button>
+          <button id="bJoin" class="secondary">Join Conversation</button>
+        </div>
+        <label>Conversation ID (optional)</label>
+        <input type="text" id="bConversation" placeholder="conversation id to join" />
+        <div class="status" id="bStatus">Status: disconnected</div>
+        <div class="log" id="bLog"></div>
+      </div>
+    </div>
+
+    <p class="small">
+      This page uses Socket.IO via CDN. If your environment blocks external assets, run the Node script instead.
+    </p>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script>
+      function setupClient(prefix) {
+        const els = {
+          baseUrl: document.getElementById(prefix + "BaseUrl"),
+          token: document.getElementById(prefix + "Token"),
+          recipient: document.getElementById(prefix + "Recipient"),
+          body: document.getElementById(prefix + "Body"),
+          connect: document.getElementById(prefix + "Connect"),
+          disconnect: document.getElementById(prefix + "Disconnect"),
+          send: document.getElementById(prefix + "Send"),
+          join: document.getElementById(prefix + "Join"),
+          conversation: document.getElementById(prefix + "Conversation"),
+          status: document.getElementById(prefix + "Status"),
+          log: document.getElementById(prefix + "Log"),
+        };
+
+        let socket = null;
+
+        const log = (msg) => {
+          const time = new Date().toLocaleTimeString();
+          els.log.textContent = `[${time}] ${msg}\n` + els.log.textContent;
+        };
+
+        const setStatus = (text, ok) => {
+          els.status.textContent = "Status: " + text;
+          els.status.className = "status " + (ok ? "ok" : "bad");
+        };
+
+        els.connect.addEventListener("click", () => {
+          if (!window.io) {
+            alert("Socket.IO client failed to load.");
+            return;
+          }
+          if (socket) {
+            socket.disconnect();
+          }
+          socket = window.io(els.baseUrl.value.trim(), {
+            auth: { token: els.token.value.trim() },
+          });
+
+          socket.on("connect", () => {
+            setStatus("connected", true);
+            log("connected: " + socket.id);
+          });
+
+          socket.on("connect_error", (err) => {
+            setStatus("error", false);
+            log("connect_error: " + (err && err.message ? err.message : "unknown"));
+          });
+
+          socket.on("disconnect", (reason) => {
+            setStatus("disconnected", false);
+            log("disconnected: " + reason);
+          });
+
+          socket.on("message:new", (payload) => {
+            log("message:new -> " + JSON.stringify(payload));
+          });
+        });
+
+        els.disconnect.addEventListener("click", () => {
+          if (socket) {
+            socket.disconnect();
+            socket = null;
+            setStatus("disconnected", false);
+          }
+        });
+
+        els.send.addEventListener("click", () => {
+          if (!socket) {
+            alert("Connect first.");
+            return;
+          }
+          const payload = {
+            recipientId: els.recipient.value.trim(),
+            body: els.body.value.trim(),
+          };
+          socket.emit("message:send", payload, (ack) => {
+            log("ack -> " + JSON.stringify(ack));
+          });
+        });
+
+        els.join.addEventListener("click", () => {
+          if (!socket) {
+            alert("Connect first.");
+            return;
+          }
+          const conversationId = els.conversation.value.trim();
+          if (!conversationId) {
+            alert("Enter a conversation ID.");
+            return;
+          }
+          socket.emit("conversation:join", conversationId);
+          log("joined conversation: " + conversationId);
+        });
+      }
+
+      setupClient("a");
+      setupClient("b");
+    </script>
+  </body>
+</html>
