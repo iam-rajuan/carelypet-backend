@@ -19,6 +19,7 @@ export const toPetResponse = (pet: IPet) => ({
   avatarUrl: pet.avatarUrl,
   photos: pet.photos,
   medicalRecords: pet.medicalRecords,
+  healthRecords: pet.healthRecords,
   createdAt: pet.createdAt,
   updatedAt: pet.updatedAt,
 });

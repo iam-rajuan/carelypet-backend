@@ -202,3 +202,83 @@ export const deletePet = async (req: AuthRequest, res: Response) => {
     res.status(status).json({ success: false, message });
   }
 };
+
+export const addHealthRecord = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+
+    const files = req.files as Express.Multer.File[] | undefined;
+    const uploads = await Promise.all(
+      (files || []).map((file) =>
+        uploadsService.uploadFileToS3(
+          file.buffer,
+          file.mimetype,
+          `pets/${req.params.id}/health`
+        )
+      )
+    );
+
+    const record = {
+      type: req.body.type,
+      recordDetails: req.body.recordDetails,
+      veterinarian: req.body.veterinarian,
+      vitalSigns: req.body.vitalSigns,
+      observation: req.body.observation,
+      attachments: uploads.map((item) => item.url),
+    };
+
+    const pet = await petsService.addHealthRecord(userId, req.params.id, record);
+    res.status(201).json({ success: true, data: toPetResponse(pet), message: "Health record added" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to add health record";
+    const status = message === "Pet not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+const addTypedHealthRecord =
+  (type: string) =>
+  async (req: AuthRequest, res: Response) => {
+    req.body.type = type;
+    await addHealthRecord(req, res);
+  };
+
+export const addVaccinationHealthRecord = addTypedHealthRecord("vaccination");
+export const addCheckupHealthRecord = addTypedHealthRecord("checkup");
+export const addMedicationHealthRecord = addTypedHealthRecord("medication");
+export const addTickFleaHealthRecord = addTypedHealthRecord("tick_flea");
+export const addSurgeryHealthRecord = addTypedHealthRecord("surgery");
+export const addDentalHealthRecord = addTypedHealthRecord("dental");
+export const addOtherHealthRecord = addTypedHealthRecord("other");
+
+export const listHealthRecords = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+
+    const validatedQuery = (req as Request & { validatedQuery?: { type?: string } })
+      .validatedQuery;
+    const type = validatedQuery?.type;
+    const records = await petsService.listHealthRecords(userId, req.params.id, type);
+    res.json({ success: true, data: records });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch health records";
+    const status = message === "Pet not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const deleteHealthRecord = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+    await petsService.deleteHealthRecord(userId, req.params.id, req.params.recordId);
+    res.json({ success: true, message: "Health record deleted" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete health record";
+    const status =
+      message === "Pet not found" || message === "Health record not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};

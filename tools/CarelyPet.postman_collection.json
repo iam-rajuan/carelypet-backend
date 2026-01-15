@@ -1,0 +1,3219 @@
+{
+	"info": {
+		"_postman_id": "b1905908-6515-4113-9223-1cb611f8be30",
+		"name": "CarelyPet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41974181",
+		"_collection_link": "https://team00-9871.postman.co/workspace/Rajuan's_Workspace~fc561aad-1e16-44e6-bde4-763b3a2364c1/collection/41974181-b1905908-6515-4113-9223-1cb611f8be30?action=share&source=collection_link&creator=41974181"
+	},
+	"item": [
+		{
+			"name": "Admin - Functionality",
+			"item": [
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "Admin Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let res = pm.response.json();\r",
+											"\r",
+											"if (res?.data?.tokens?.accessToken) {\r",
+											"    pm.environment.set(\"access_token\", res.data.tokens.accessToken);\r",
+											"    console.log(\"Admin access token saved!\");\r",
+											"}\r",
+											"\r",
+											"if (res?.data?.tokens?.refreshToken) {\r",
+											"    pm.environment.set(\"refresh_token\", res.data.tokens.refreshToken);\r",
+											"    console.log(\"Admin refresh token saved!\");\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"email\": \"admin@carelypet.com\",\r\n  \"password\": \"admin@123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/auth/login",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "logout",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{refresh_token}}",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}auth/logout",
+									"host": [
+										"{{base_url}}auth"
+									],
+									"path": [
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin Profile",
+					"item": [
+						{
+							"name": "Get Admin",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url_1}}admin/profile",
+									"host": [
+										"{{base_url_1}}admin"
+									],
+									"path": [
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"New Admin Name\",\r\n  \"email\": \"newadmin@carelypet.com\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/profile",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"profile"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Change password",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"currentPassword\": \"admin@123\",\r\n  \"newPassword\": \"admin@123456\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/profile/password",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"profile",
+										"password"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "User Management",
+					"item": [
+						{
+							"name": "Pets Pal Management",
+							"item": [
+								{
+									"name": "Get all users",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}admin/users",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"users"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get user by id",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}admin/users/:id",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"users",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "694af5384637e9277e8292ca"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete User by id",
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}admin/users/:id",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"users",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "694af5384637e9277e8292ca"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "export user data",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/users/export",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"users",
+												"export"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Pet Management",
+					"item": [
+						{
+							"name": "add pet types",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"name\": \"Dog\" }\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/pet-types",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"pet-types"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get all pets",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}admin/pet-types",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"pet-types"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update pet types",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"name\": \"cat\" }\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/pet-types/:id",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"pet-types",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "6949dab8ee01bf527ec4376c"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "add pet breeds Copy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"German shepherd\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/pet-types/:typeId/breeds",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"pet-types",
+										":typeId",
+										"breeds"
+									],
+									"variable": [
+										{
+											"key": "typeId",
+											"value": "6949dab8ee01bf527ec4376c"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get pet breeds",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}admin/pet-types/:typeId/breeds",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"pet-types",
+										":typeId",
+										"breeds"
+									],
+									"variable": [
+										{
+											"key": "typeId",
+											"value": "6949dab8ee01bf527ec4376c"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Service Management",
+					"item": [
+						{
+							"name": "New Request",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{access_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}admin/services?status=all|pending|completed&page=1&limit=20",
+									"host": [
+										"{{base_url}}admin"
+									],
+									"path": [
+										"services"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "all|pending|completed"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Adoption Management",
+					"item": [
+						{
+							"name": "add pet",
+							"item": [
+								{
+									"name": "add pet for adoption",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "petName",
+													"value": "buddy",
+													"type": "text"
+												},
+												{
+													"key": "petType",
+													"value": "dog",
+													"type": "text"
+												},
+												{
+													"key": "breed",
+													"value": "labrador",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "petAge",
+													"value": "3",
+													"type": "text"
+												},
+												{
+													"key": "weightLbs",
+													"value": "45",
+													"type": "text"
+												},
+												{
+													"key": "gender",
+													"value": "male",
+													"type": "text"
+												},
+												{
+													"key": "trained",
+													"value": "true",
+													"type": "text"
+												},
+												{
+													"key": "vaccinated",
+													"value": "true",
+													"type": "text"
+												},
+												{
+													"key": "neutered",
+													"value": "true",
+													"type": "text"
+												},
+												{
+													"key": "personality",
+													"value": "[\"friendly\",\"playful\",\"gentle\"]",
+													"type": "text"
+												},
+												{
+													"key": "aboutPet",
+													"value": "Very calm and loves kids.",
+													"type": "text"
+												},
+												{
+													"key": "shelterName",
+													"value": "Carely Pets",
+													"type": "text"
+												},
+												{
+													"key": "shelterPhone",
+													"value": "+1 555 0000",
+													"type": "text"
+												},
+												{
+													"key": "avatarIndex",
+													"value": "1",
+													"type": "text"
+												},
+												{
+													"key": "photos",
+													"type": "file",
+													"src": "/C:/Users/Rajuan/Downloads/download (2).jpg"
+												},
+												{
+													"key": "photos",
+													"type": "file",
+													"src": "/C:/Users/Rajuan/Downloads/download.jpg"
+												},
+												{
+													"key": "healthRecords",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299",
+													"disabled": true
+												},
+												{
+													"key": "healthFiles",
+													"value": "",
+													"type": "text",
+													"disabled": true
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "adoption status",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions?status=available",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions"
+											],
+											"query": [
+												{
+													"key": "status",
+													"value": "available"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Adoption Details",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Adoption Info",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \"aboutPet\": \"Updated info of about pet. rajuan\", \"trained\": false }\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Adoption Status",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \"status\": \"adopted\" }\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Adoption Listing",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \"aboutPet\": \"Updated info of about pet. rajuan\", \"trained\": false }\r\n"
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Health Records (Modal Flow)",
+							"item": [
+								{
+									"name": "Add Health Record (Vaccination)",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "type",
+													"value": "vaccination",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "recordDetails",
+													"value": "{\"recordName\":\"Rabies\",\"batchLotNo\":\"LOT-123\",\"otherInfo\":\"Booster due\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "veterinarian",
+													"value": "{\"designation\":\"Dr.\",\"name\":\"Smith\",\"clinicName\":\"Care Vet\",\"licenseNo\":\"LIC-99\",\"contact\":\"+1 555 0000\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "vitalSigns",
+													"value": "{\"weight\":\"22kg\",\"temperature\":\"101F\",\"heartRate\":\"90\",\"respiratory\":\"18\",\"status\":\"normal\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}/health-records",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}",
+												"health-records"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "List Health Records",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listing_id}}/health-records?type=vaccination",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listing_id}}",
+												"health-records"
+											],
+											"query": [
+												{
+													"key": "type",
+													"value": "vaccination"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Health Record",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listing_id}}/health-records/{{recordId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listing_id}}",
+												"health-records",
+												"{{recordId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Health Records (Modal Flow) Copy",
+							"item": [
+								{
+									"name": "Add Health Record (Vaccination)",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "type",
+													"value": "vaccination",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "recordDetails",
+													"value": "{\"recordName\":\"Rabies\",\"batchLotNo\":\"LOT-123\",\"otherInfo\":\"Booster due\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "veterinarian",
+													"value": "{\"designation\":\"Dr.\",\"name\":\"Smith\",\"clinicName\":\"Care Vet\",\"licenseNo\":\"LIC-99\",\"contact\":\"+1 555 0000\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "vitalSigns",
+													"value": "{\"weight\":\"22kg\",\"temperature\":\"101F\",\"heartRate\":\"90\",\"respiratory\":\"18\",\"status\":\"normal\"}",
+													"contentType": "",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listingId}}/health-records",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listingId}}",
+												"health-records"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "List Health Records",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listing_id}}/health-records?type=vaccination",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listing_id}}",
+												"health-records"
+											],
+											"query": [
+												{
+													"key": "type",
+													"value": "vaccination"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Health Record",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/{{listing_id}}/health-records/{{recordId}}",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"{{listing_id}}",
+												"health-records",
+												"{{recordId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Adoption Request",
+							"item": [
+								{
+									"name": "List Adoption Requests",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/requests?status=all",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"requests"
+											],
+											"query": [
+												{
+													"key": "status",
+													"value": "all"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Request Details",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/requests/{{reqId}}\n\n",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"requests",
+												"{{reqId}}\n\n"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Request Status",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \"status\": \"delivered\" }",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/adoptions/requests/{{reqId}}/status",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"adoptions",
+												"requests",
+												"{{reqId}}",
+												"status"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Request",
+									"request": {
+										"method": "GET",
+										"header": []
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Reports",
+					"item": []
+				},
+				{
+					"name": "Terms & Condition",
+					"item": []
+				},
+				{
+					"name": "settings",
+					"item": [
+						{
+							"name": "service",
+							"item": [
+								{
+									"name": "add service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"name\": \"Walking\",\r\n  \"type\": \"walking\",\r\n  \"price\": 150,\r\n  \"isActive\": true\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/services",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"services"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"price\": 450,\r\n  \"isActive\": true\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/services/:id",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"services",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "694c6dee9ac84c6aeab76299"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get all services",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/services",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"services"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "delete service",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"name\": \"Full Grooming\",\r\n  \"type\": \"grooming\",\r\n  \"price\": 45,\r\n  \"isActive\": true\r\n}\r\n"
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/services/:id",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"services",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "694c6d189ac84c6aeab7628b"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "tax",
+							"item": [
+								{
+									"name": "add tax",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"percent\": 5\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/tax",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"tax"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get tax",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/tax",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"tax"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update tax Copy",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{ \"percent\": 7.5 }\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}admin/settings/tax",
+											"host": [
+												"{{base_url}}admin"
+											],
+											"path": [
+												"settings",
+												"tax"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Availability",
+							"item": [
+								{
+									"name": "availability",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/admin/settings/availability",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"admin",
+												"settings",
+												"availability"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get availability",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}bookings/availability?date=2025-12-31",
+											"host": [
+												"{{base_url}}bookings"
+											],
+											"path": [
+												"availability"
+											],
+											"query": [
+												{
+													"key": "date",
+													"value": "2025-12-31"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User - Functionality",
+			"item": [
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "User Register",
+							"item": [
+								{
+									"name": "User Register with OTP Copy",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"name\": \"Md. Rajuan Hossen\",\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"password\": \"123456\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/register",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"register"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Verify Email Copy",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"let res = pm.response.json();\r",
+													"\r",
+													"//save access token\r",
+													"if (res?.data?.setupToken){\r",
+													"    pm.environment.set(\"setup_token\", res.data.setupToken);\r",
+													"    console.log(\"User access/setup token saved.\")\r",
+													"}\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"otp\": \"5593\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/verify-email",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"verify-email"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Complete Profile Copy",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"let res = pm.response.json();\r",
+													"\r",
+													"// Save accessToken\r",
+													"if (res?.data?.tokens?.accessToken) {\r",
+													"    pm.environment.set(\"access_token\", res.data.tokens.accessToken);\r",
+													"    console.log(\"User access token saved.\");\r",
+													"}\r",
+													"\r",
+													"// Save refreshToken\r",
+													"if (res?.data?.tokens?.refreshToken) {\r",
+													"    pm.environment.set(\"refresh_token\", res.data.tokens.refreshToken);\r",
+													"    console.log(\"User refresh token saved.\");\r",
+													"}\r",
+													"\r",
+													"// Save user_id (optional but useful)\r",
+													"if (res?.data?.user?.id) {\r",
+													"    pm.environment.set(\"user_id\", res.data.user.id);\r",
+													"    console.log(\"User ID saved.\");\r",
+													"}\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{setup_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "username",
+													"value": "john_doe",
+													"type": "text"
+												},
+												{
+													"key": "country",
+													"value": "US",
+													"type": "text"
+												},
+												{
+													"key": "favorites",
+													"value": "[\"dogs\",\"cats\"]",
+													"type": "text"
+												},
+												{
+													"key": "file",
+													"type": "file",
+													"src": "/C:/Users/Rajuan/Downloads/images (1).jpg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}auth/complete-profile",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"complete-profile"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "User Login",
+							"item": [
+								{
+									"name": "User Login",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"let res = pm.response.json();\r",
+													"\r",
+													"// Save accessToken\r",
+													"if (res?.data?.tokens?.accessToken) {\r",
+													"    pm.environment.set(\"access_token\", res.data.tokens.accessToken);\r",
+													"    console.log(\"User access token saved.\");\r",
+													"}\r",
+													"\r",
+													"// Save refreshToken\r",
+													"if (res?.data?.tokens?.refreshToken) {\r",
+													"    pm.environment.set(\"refresh_token\", res.data.tokens.refreshToken);\r",
+													"    console.log(\"User refresh token saved.\");\r",
+													"}\r",
+													"\r",
+													"// Save user_id (optional but useful)\r",
+													"if (res?.data?.user?.id) {\r",
+													"    pm.environment.set(\"user_id\", res.data.user.id);\r",
+													"    console.log(\"User ID saved.\");\r",
+													"}\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text",
+												"disabled": true
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"password\": \"1234567\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/login",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"login"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Authenticated User Copy",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"success\": true,\r\n  \"user\": {\r\n    \"id\": \"\",\r\n    \"role\": \"\"\r\n  }\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/me",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"me"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "forget password",
+							"item": [
+								{
+									"name": "forget-pass",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/forgot-password",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"forgot-password"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "verify otp",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"otp\": \"5274\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/verify-reset-otp",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"verify-reset-otp"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "reset password",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"password\": \"1234567\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}auth/reset-password",
+											"host": [
+												"{{base_url}}auth"
+											],
+											"path": [
+												"reset-password"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "Pets",
+							"item": [
+								{
+									"name": "Health Records",
+									"item": []
+								},
+								{
+									"name": "Add Pet Copy",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "name",
+													"value": "pet (tanvir)",
+													"type": "text"
+												},
+												{
+													"key": "type",
+													"value": "Dog",
+													"type": "text"
+												},
+												{
+													"key": "breed",
+													"value": "Labrador",
+													"type": "text"
+												},
+												{
+													"key": "age",
+													"value": "3",
+													"type": "text"
+												},
+												{
+													"key": "weightLbs",
+													"value": "55",
+													"type": "text"
+												},
+												{
+													"key": "gender",
+													"value": "male",
+													"type": "text"
+												},
+												{
+													"key": "trained",
+													"value": "yes",
+													"type": "text"
+												},
+												{
+													"key": "neutered",
+													"value": "no",
+													"type": "text"
+												},
+												{
+													"key": "personality",
+													"value": "[\"friendly\",\"playful\"]",
+													"type": "text"
+												},
+												{
+													"key": "about",
+													"value": "He is a bery friendly pet. bla bla bla",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": [
+														"postman-cloud:///1f0ecd36-01b9-43c0-9ee1-37d23032090e",
+														"postman-cloud:///1f0ecd2e-9eb8-48e0-acff-563f637c41cf"
+													]
+												},
+												{
+													"key": "avatar",
+													"type": "file",
+													"src": "postman-cloud:///1f0ecdd0-2483-46e0-b9b6-b773fae72031"
+												},
+												{
+													"key": "vaccinated",
+													"value": "yes",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}pets",
+											"host": [
+												"{{base_url}}pets"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update pet",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "name",
+													"value": "pet (tanvir)",
+													"type": "text"
+												},
+												{
+													"key": "type",
+													"value": "Dog",
+													"type": "text"
+												},
+												{
+													"key": "breed",
+													"value": "Labrador",
+													"type": "text"
+												},
+												{
+													"key": "age",
+													"value": "3",
+													"type": "text"
+												},
+												{
+													"key": "weightLbs",
+													"value": "55",
+													"type": "text"
+												},
+												{
+													"key": "gender",
+													"value": "male",
+													"type": "text"
+												},
+												{
+													"key": "trained",
+													"value": "yes",
+													"type": "text"
+												},
+												{
+													"key": "vaccinated",
+													"value": "yes",
+													"type": "text"
+												},
+												{
+													"key": "neutered",
+													"value": "no",
+													"type": "text"
+												},
+												{
+													"key": "personality",
+													"value": "[\"friendly\",\"playful\"]",
+													"type": "text"
+												},
+												{
+													"key": "about",
+													"value": "He is a bery friendly pet. bla bla bla",
+													"type": "text"
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299",
+													"disabled": true
+												},
+												{
+													"key": "avatar",
+													"type": "file",
+													"src": "postman-cloud:///1f0ecd36-01b9-43c0-9ee1-37d23032090e",
+													"disabled": true
+												},
+												{
+													"key": "photos",
+													"type": "file",
+													"src": "postman-cloud:///1f0ecd2e-9eb8-48e0-acff-563f637c41cf",
+													"disabled": true
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}pets/{{pet_id}}",
+											"host": [
+												"{{base_url}}pets"
+											],
+											"path": [
+												"{{pet_id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get My Pets Copy",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}pets",
+											"host": [
+												"{{base_url}}pets"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Pet by ID Copy",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}pets/{{pet_id}}",
+											"host": [
+												"{{base_url}}pets"
+											],
+											"path": [
+												"{{pet_id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Pet Copy",
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/pets/{{pet_id}}",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"pets",
+												"{{pet_id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Upload Pet Avatar Copy",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "file",
+													"type": "file",
+													"src": [
+														"/C:/Users/Rajuan/Downloads/images.jpg",
+														"/C:/Users/Rajuan/Downloads/download (2).jpg"
+													]
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}uploads/pets/:id/avatar",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"pets",
+												":id",
+												"avatar"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "695d82c1b5c6ddff00070833"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Upload Multiple Pet Photos Copy",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "files",
+													"type": "file",
+													"src": [
+														"/C:/Users/Rajuan/Downloads/images (2).jpg",
+														"/C:/Users/Rajuan/Downloads/images (1).jpg",
+														"/C:/Users/Rajuan/Downloads/download (2).jpg",
+														"/C:/Users/Rajuan/Downloads/download (1).jpg"
+													]
+												},
+												{
+													"key": "files",
+													"type": "file",
+													"src": "/C:/Users/Rajuan/Downloads/images (2).jpg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}uploads/pets/:id/photos",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"pets",
+												":id",
+												"photos"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "695d82c1b5c6ddff00070833"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Upload Pet Document (PDF or images) Copy",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "file",
+													"type": "file",
+													"src": "postman-cloud:///1f0d08c9-a8ae-4c80-a0df-72cd011ff299"
+												},
+												{
+													"key": "title",
+													"value": "Vaccination Record",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}uploads/pets/:id/documents",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"pets",
+												":id",
+												"documents"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "692ccda16e2d66f41ef3df8f"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Pet Photo Copy",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer{{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}uploads/pets/:id/photos/:fileId",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"pets",
+												":id",
+												"photos",
+												":fileId"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "695d82c1b5c6ddff00070833"
+												},
+												{
+													"key": "fileId",
+													"value": "1764716059072-17e4e4eb0f0e.jpg"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Pet Document Copy",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}uploads/pets/:id/documents/:fileId",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"pets",
+												":id",
+												"documents",
+												":fileId"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "695d82c1b5c6ddff00070833"
+												},
+												{
+													"key": "fileId",
+													"value": "1764718177127-45a074cdfee6.pdf"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "User Profile",
+							"item": [
+								{
+									"name": "User Profile",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}users/me",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"me"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Profile Copy",
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"name\": \"Rajuan\",\r\n  \"phone\": \"9876543210555\",\r\n  \"address\": \"Street 1, City\",\r\n  \"country\": \"BD\",\r\n  \"city\": \"Dhaka\",\r\n  \"favorites\": [\"dogszz\", \"catss\", \"birds\"]\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}users/me",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"me"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get User by id",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}users/{{user_id}}",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"{{user_id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Change password",
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer {{access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"currentPassword\": \"123456\",\r\n  \"newPassword\": \"123456789\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}users/me/password",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"me",
+												"password"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "deletion request",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}users/me/delete-request",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"me",
+												"delete-request"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "withdraw deletion request",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}users/me/delete-request/withdraw",
+											"host": [
+												"{{base_url}}users"
+											],
+											"path": [
+												"me",
+												"delete-request",
+												"withdraw"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Upload or Change Avatar",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "file",
+													"type": "file",
+													"src": "/C:/Users/Rajuan/Downloads/user.jpg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}uploads/user/avatar",
+											"host": [
+												"{{base_url}}uploads"
+											],
+											"path": [
+												"user",
+												"avatar"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "book a service",
+							"item": [
+								{
+									"name": "Get available services + tax",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}services",
+											"host": [
+												"{{base_url}}services"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "get availability Copy",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}bookings/availability?date=2025-12-31",
+											"host": [
+												"{{base_url}}bookings"
+											],
+											"path": [
+												"availability"
+											],
+											"query": [
+												{
+													"key": "date",
+													"value": "2025-12-31"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create booking + payment intent",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"serviceIds\": [\"694c72b260b34ae154780745\"],\r\n  \"petIds\": [\"69504d8e9d6003469e73c866\"],\r\n  \"scheduledAt\": \"2025-12-31T10:30:00.000Z\",\r\n  \"reminderType\": \"day_before\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}bookings",
+											"host": [
+												"{{base_url}}bookings"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Confirm payment (after Stripe success)",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"bookingId\": \"69504ea4662818d328ef3583\",\r\n  \"cardToken\": \"tok_visa\",\r\n  \"nameOnCard\": \"Test User\",\r\n  \"country\": \"US\"\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}payments/confirm-card",
+											"host": [
+												"{{base_url}}payments"
+											],
+											"path": [
+												"confirm-card"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "stripe webhooks",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}webhooks/stripe",
+											"host": [
+												"{{base_url}}webhooks"
+											],
+											"path": [
+												"stripe"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Booking history",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}bookings",
+											"host": [
+												"{{base_url}}bookings"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Payment history",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}bookings/payments?paymentStatus=paid&page=1&limit=20",
+											"host": [
+												"{{base_url}}bookings"
+											],
+											"path": [
+												"payments"
+											],
+											"query": [
+												{
+													"key": "paymentStatus",
+													"value": "paid"
+												},
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "limit",
+													"value": "20"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Adoption Request",
+							"item": [
+								{
+									"name": "User Requests Adoption",
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{access_token}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}adoption/{{listing_id}}/request",
+											"host": [
+												"{{base_url}}adoption"
+											],
+											"path": [
+												"{{listing_id}}",
+												"request"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Messaging Functionalites",
+							"item": [
+								{
+									"name": "Auth",
+									"item": [
+										{
+											"name": "Register",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"user@example.com\",\n  \"password\": \"ChangeMe123!\",\n  \"phone\": \"+15550001111\"\n}"
+												},
+												"url": {
+													"raw": "{{baseUrl}}/auth/register",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"auth",
+														"register"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Login",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"ChangeMe123!\"\n}"
+												},
+												"url": {
+													"raw": "{{baseUrl}}/auth/login",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"auth",
+														"login"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Refresh Token",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+												},
+												"url": {
+													"raw": "{{baseUrl}}/auth/refresh",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"auth",
+														"refresh"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Messages",
+									"item": [
+										{
+											"name": "List Conversations",
+											"request": {
+												"auth": {
+													"type": "noauth"
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{access_token}}"
+													}
+												],
+												"url": {
+													"raw": "{{base_url}}messages/conversations",
+													"host": [
+														"{{base_url}}messages"
+													],
+													"path": [
+														"conversations"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "List Messages in Conversation",
+											"request": {
+												"auth": {
+													"type": "bearer"
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{accessToken}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/messages/conversations/{{conversationId}}/messages?page=1&limit=20",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"messages",
+														"conversations",
+														"{{conversationId}}",
+														"messages"
+													],
+													"query": [
+														{
+															"key": "page",
+															"value": "1"
+														},
+														{
+															"key": "limit",
+															"value": "20"
+														}
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Send Message",
+											"request": {
+												"auth": {
+													"type": "bearer"
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer {{accessToken}}"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"recipientId\": \"{{recipientId}}\",\n  \"body\": \"Hello from Postman\"\n}"
+												},
+												"url": {
+													"raw": "{{baseUrl}}messages",
+													"host": [
+														"{{baseUrl}}messages"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Mark Conversation Read",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Bearer {{access_token}}"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/messages/conversations/{{conversationId}}/read",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"messages",
+														"conversations",
+														"{{conversationId}}",
+														"read"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Home",
+							"item": []
+						}
+					]
+				}
+			]
+		}
+	]
+}

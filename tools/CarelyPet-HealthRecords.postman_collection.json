@@ -1,0 +1,593 @@
+{
+	"info": {
+		"_postman_id": "9dff6d16-5f8e-4d35-b9b1-ec1f343c5d0b",
+		"name": "CarelyPet - Pet Health Records",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User Auth",
+			"item": [
+				{
+					"name": "User Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let res = pm.response.json();",
+									"",
+									"if (res?.data?.tokens?.accessToken) {",
+									"    pm.environment.set(\"access_token\", res.data.tokens.accessToken);",
+									"    console.log(\"User access token saved.\");",
+									"}",
+									"",
+									"if (res?.data?.tokens?.refreshToken) {",
+									"    pm.environment.set(\"refresh_token\", res.data.tokens.refreshToken);",
+									"    console.log(\"User refresh token saved.\");",
+									"}",
+									"",
+									"if (res?.data?.user?.id) {",
+									"    pm.environment.set(\"user_id\", res.data.user.id);",
+									"    console.log(\"User ID saved.\");",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"quantumerrors@gmail.com\",\r\n  \"password\": \"1234567\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}auth/login",
+							"host": [
+								"{{base_url}}auth"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pet Health Records",
+			"item": [
+				{
+					"name": "Add Vaccination Record",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let res = pm.response.json();",
+									"let records = res?.data?.healthRecords || [];",
+									"if (records.length) {",
+									"    let last = records[records.length - 1];",
+									"    if (last?._id || last?.id) {",
+									"        pm.environment.set(\"health_record_id\", last._id || last.id);",
+									"        console.log(\"health_record_id saved.\");",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Rabies Shot\",\"batchLotNo\":\"RB-2025-01\",\"otherInfo\":\"First dose\",\"cost\":\"25.00\",\"date\":\"2026-01-15\",\"nextDueDate\":\"2026-07-15\",\"reminder\":{\"enabled\":true,\"offset\":\"1_week\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Smith\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-123\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Monitor appetite\",\"Check vitals weekly\"],\"clinicalNotes\":\"No adverse reactions observed.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/vaccination",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"vaccination"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Checkup Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Routine Checkup\",\"batchLotNo\":\"CHK-2025-01\",\"otherInfo\":\"Annual check\",\"cost\":\"30.00\",\"date\":\"2026-02-01\",\"nextDueDate\":\"2027-02-01\",\"reminder\":{\"enabled\":true,\"offset\":\"1_week\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Lee\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-456\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Good appetite\"],\"clinicalNotes\":\"Healthy overall.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/checkup",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"checkup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Medication Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Antibiotic Course\",\"batchLotNo\":\"MED-2025-01\",\"otherInfo\":\"7-day course\",\"cost\":\"40.00\",\"date\":\"2026-02-10\",\"nextDueDate\":\"2026-02-17\",\"reminder\":{\"enabled\":true,\"offset\":\"3_days\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Patel\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-789\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Monitor appetite\"],\"clinicalNotes\":\"Tolerating medication well.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/medication",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"medication"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Tick & Flea Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Flea Treatment\",\"batchLotNo\":\"TF-2025-01\",\"otherInfo\":\"Monthly spot-on\",\"cost\":\"18.00\",\"date\":\"2026-03-01\",\"nextDueDate\":\"2026-04-01\",\"reminder\":{\"enabled\":true,\"offset\":\"1_week\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Khan\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-234\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Check skin\"],\"clinicalNotes\":\"No irritation observed.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/tick-flea",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"tick-flea"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Surgery Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Neuter\",\"batchLotNo\":\"SUR-2025-01\",\"otherInfo\":\"Post-op meds prescribed\",\"cost\":\"120.00\",\"date\":\"2026-03-15\",\"nextDueDate\":\"2026-03-29\",\"reminder\":{\"enabled\":true,\"offset\":\"3_days\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Adams\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-567\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Monitor incision\"],\"clinicalNotes\":\"Recovery progressing.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/surgery",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"surgery"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Dental Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Dental Cleaning\",\"batchLotNo\":\"DEN-2025-01\",\"otherInfo\":\"Mild tartar removal\",\"cost\":\"60.00\",\"date\":\"2026-04-01\",\"nextDueDate\":\"2027-04-01\",\"reminder\":{\"enabled\":true,\"offset\":\"1_month\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Wilson\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-890\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Monitor gums\"],\"clinicalNotes\":\"Teeth cleaned successfully.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/dental",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"dental"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Other Record",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "recordDetails",
+									"value": "{\"recordName\":\"Other Note\",\"batchLotNo\":\"OTH-2025-01\",\"otherInfo\":\"General note\",\"cost\":\"0.00\",\"date\":\"2026-04-10\",\"nextDueDate\":\"2026-05-10\",\"reminder\":{\"enabled\":false,\"offset\":\"\"}}",
+									"type": "text"
+								},
+								{
+									"key": "veterinarian",
+									"value": "{\"designation\":\"DVM\",\"name\":\"Dr Green\",\"clinicName\":\"Carely Vet\",\"licenseNo\":\"LIC-321\",\"contact\":\"+1 555 0000\"}",
+									"type": "text"
+								},
+								{
+									"key": "vitalSigns",
+									"value": "{\"weight\":\"15 lb\",\"temperature\":\"101 F\",\"heartRate\":\"90 bpm\",\"respiratory\":\"22 rpm\",\"status\":\"normal\"}",
+									"type": "text"
+								},
+								{
+									"key": "observation",
+									"value": "{\"lookupObservations\":[\"Note symptom\"],\"clinicalNotes\":\"Additional info.\"}",
+									"type": "text"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "/C:/Users/Rajuan/Downloads/sample-health.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/other",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"other"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Health Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Health Records By Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records?type=vaccination",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "vaccination"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Health Record",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}pets/{{pet_id}}/health-records/{{health_record_id}}",
+							"host": [
+								"{{base_url}}pets"
+							],
+							"path": [
+								"{{pet_id}}",
+								"health-records",
+								"{{health_record_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

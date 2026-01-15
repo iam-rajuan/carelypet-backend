@@ -39,3 +39,4 @@ export const uploadPetCreateMedia = uploadImages.fields([
   { name: "files", maxCount: 3 },
 ]);
 export const uploadDocument = uploadDocs.single("file");
+export const uploadPetHealthFiles = uploadDocs.array("files", 3);

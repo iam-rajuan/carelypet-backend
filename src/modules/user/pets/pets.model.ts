@@ -6,6 +6,50 @@ export interface IMedicalRecord {
   uploadedAt: Date;
 }
 
+export type HealthRecordType =
+  | "vaccination"
+  | "checkup"
+  | "medication"
+  | "tick_flea"
+  | "surgery"
+  | "dental"
+  | "other";
+
+export interface IHealthRecord {
+  type: HealthRecordType;
+  recordDetails: {
+    recordName: string;
+    batchLotNo?: string;
+    otherInfo?: string;
+    cost?: string;
+    date?: string;
+    nextDueDate?: string;
+    reminder?: {
+      enabled: boolean;
+      offset?: string;
+    };
+  };
+  veterinarian: {
+    designation?: string;
+    name?: string;
+    clinicName?: string;
+    licenseNo?: string;
+    contact?: string;
+  };
+  vitalSigns: {
+    weight?: string;
+    temperature?: string;
+    heartRate?: string;
+    respiratory?: string;
+    status?: "normal" | "high" | "low";
+  };
+  observation: {
+    lookupObservations?: string[];
+    clinicalNotes?: string;
+  };
+  attachments?: string[];
+}
+
 export interface IPet extends Document {
   owner: mongoose.Types.ObjectId;
   name: string;
@@ -22,6 +66,7 @@ export interface IPet extends Document {
   avatarUrl?: string | null;
   photos: string[];
   medicalRecords: IMedicalRecord[];
+  healthRecords: IHealthRecord[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +79,53 @@ const medicalRecordSchema = new Schema<IMedicalRecord>(
   },
   { _id: false }
 );
+
+const healthRecordSchema = new Schema<IHealthRecord>({
+  type: {
+    type: String,
+    enum: [
+      "vaccination",
+      "checkup",
+      "medication",
+      "tick_flea",
+      "surgery",
+      "dental",
+      "other",
+    ],
+    required: true,
+  },
+  recordDetails: {
+    recordName: { type: String, required: true },
+    batchLotNo: { type: String, default: "" },
+    otherInfo: { type: String, default: "" },
+    cost: { type: String, default: "" },
+    date: { type: String, default: "" },
+    nextDueDate: { type: String, default: "" },
+    reminder: {
+      enabled: { type: Boolean, default: false },
+      offset: { type: String, default: "" },
+    },
+  },
+  veterinarian: {
+    designation: { type: String, default: "" },
+    name: { type: String, default: "" },
+    clinicName: { type: String, default: "" },
+    licenseNo: { type: String, default: "" },
+    contact: { type: String, default: "" },
+  },
+  vitalSigns: {
+    weight: { type: String, default: "" },
+    temperature: { type: String, default: "" },
+    heartRate: { type: String, default: "" },
+    respiratory: { type: String, default: "" },
+    status: { type: String, enum: ["normal", "high", "low"], default: "normal" },
+  },
+  observation: {
+    lookupObservations: { type: [String], default: [] },
+    clinicalNotes: { type: String, default: "" },
+  },
+  attachments: { type: [String], default: [] },
+});
 
 const petSchema = new mongoose.Schema<IPet>(
   {
@@ -52,6 +144,7 @@ const petSchema = new mongoose.Schema<IPet>(
     avatarUrl: { type: String, default: null },
     photos: { type: [String], default: [] },
     medicalRecords: { type: [medicalRecordSchema], default: [] },
+    healthRecords: { type: [healthRecordSchema], default: [] },
   },
   { timestamps: true }
 );

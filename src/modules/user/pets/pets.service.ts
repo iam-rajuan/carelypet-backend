@@ -1,4 +1,4 @@
-import Pet, { IMedicalRecord, IPet } from "./pets.model";
+import Pet, { IHealthRecord, IMedicalRecord, IPet } from "./pets.model";
 import User from "../users/user.model";
 import { CreatePetInput, UpdatePetInput } from "./pets.validation";
 
@@ -139,4 +139,43 @@ export const removePetDocument = async (
   pet.medicalRecords.splice(index, 1);
   await pet.save();
   return pet;
+};
+
+export const addHealthRecord = async (
+  ownerId: string,
+  petId: string,
+  record: IHealthRecord
+): Promise<IPet> => {
+  const pet = await ensureOwnedPet(ownerId, petId);
+  pet.healthRecords = pet.healthRecords || [];
+  pet.healthRecords.push(record);
+  await pet.save();
+  return pet;
+};
+
+export const listHealthRecords = async (
+  ownerId: string,
+  petId: string,
+  type?: string
+): Promise<IPet["healthRecords"]> => {
+  const pet = await ensureOwnedPet(ownerId, petId);
+  const records = pet.healthRecords || [];
+  if (!type) return records;
+  return records.filter((record) => record.type === type);
+};
+
+export const deleteHealthRecord = async (
+  ownerId: string,
+  petId: string,
+  recordId: string
+): Promise<void> => {
+  const pet = await ensureOwnedPet(ownerId, petId);
+  const before = pet.healthRecords?.length || 0;
+  pet.healthRecords = (pet.healthRecords || []).filter(
+    (record: any) => record._id?.toString() !== recordId
+  );
+  if ((pet.healthRecords?.length || 0) === before) {
+    throw new Error("Health record not found");
+  }
+  await pet.save();
 };
