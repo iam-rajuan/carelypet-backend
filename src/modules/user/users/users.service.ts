@@ -5,6 +5,7 @@ import {
   UpdateProfileInput,
   ChangePasswordInput,
   UpdateAvatarInput,
+  UpdateCoverInput,
 } from "./users.validation";
 
 export const getOwnProfile = async (userId: string): Promise<IUser> => {
@@ -116,12 +117,36 @@ export const updateOwnAvatar = async (
   return user;
 };
 
+export const updateOwnCover = async (
+  userId: string,
+  payload: UpdateCoverInput
+): Promise<IUser> => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.coverUrl = payload.coverUrl.trim();
+  await user.save();
+  return user;
+};
+
 export const updateUserAvatar = async (userId: string, avatarUrl: string): Promise<IUser> => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error("User not found");
   }
   user.avatarUrl = avatarUrl.trim();
+  await user.save();
+  return user;
+};
+
+export const updateUserCover = async (userId: string, coverUrl: string): Promise<IUser> => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  user.coverUrl = coverUrl.trim();
   await user.save();
   return user;
 };

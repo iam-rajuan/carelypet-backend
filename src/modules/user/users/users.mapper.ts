@@ -15,6 +15,7 @@ export const toUserProfileResponse = (user: IUser) => ({
   status: user.status,
   bio: user.bio,
   avatarUrl: user.avatarUrl,
+  coverUrl: user.coverUrl,
   address: user.address,
   username: user.username,
   location: user.location,

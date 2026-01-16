@@ -6,6 +6,7 @@ import {
   updateProfileSchema,
   changePasswordSchema,
   updateAvatarSchema,
+  updateCoverSchema,
   userIdParamSchema,
 } from "./users.validation";
 import * as usersController from "./users.controller";
@@ -37,6 +38,7 @@ router.get("/:id", validateParams(userIdParamSchema), usersController.getUserByI
 router.patch("/me", validate(updateProfileSchema), usersController.updateMe);
 router.patch("/me/password", validate(changePasswordSchema), usersController.changePassword);
 router.patch("/me/avatar", validate(updateAvatarSchema), usersController.updateAvatar);
+router.patch("/me/cover", validate(updateCoverSchema), usersController.updateCover);
 router.post("/me/delete-request", usersController.requestDeletion);
 router.post("/me/delete-request/withdraw", usersController.withdrawDeletion);
 

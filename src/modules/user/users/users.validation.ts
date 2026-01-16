@@ -46,6 +46,10 @@ export const updateAvatarSchema = z.object({
   avatarUrl: z.string().trim().url("Invalid avatar URL"),
 });
 
+export const updateCoverSchema = z.object({
+  coverUrl: z.string().trim().url("Invalid cover URL"),
+});
+
 export const userIdParamSchema = z.object({
   id: z.string().trim().min(1, "User id is required"),
 });
@@ -53,4 +57,5 @@ export const userIdParamSchema = z.object({
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateAvatarInput = z.infer<typeof updateAvatarSchema>;
+export type UpdateCoverInput = z.infer<typeof updateCoverSchema>;
 export type UserIdParam = z.infer<typeof userIdParamSchema>;

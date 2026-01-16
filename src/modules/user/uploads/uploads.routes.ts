@@ -31,6 +31,7 @@ const fileIdParamSchema = z.object({
 });
 
 router.post("/user/avatar", onboardingAuth, uploadSingleImage, uploadsController.uploadUserAvatar);
+router.post("/user/cover", onboardingAuth, uploadSingleImage, uploadsController.uploadUserCover);
 
 router.use(auth);
 router.post(

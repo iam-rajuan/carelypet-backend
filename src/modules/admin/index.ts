@@ -6,6 +6,7 @@ import usersRouter from "./users/users.routes";
 import serviceRequestsRouter from "./services/serviceRequests.routes";
 import settingsRouter from "./settings/settings.routes";
 import adoptionRouter from "./adoption/adoption.routes";
+import reportsRouter from "./reports/reports.routes";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use("/users", usersRouter);
 router.use("/services", serviceRequestsRouter);
 router.use("/settings", settingsRouter);
 router.use("/adoptions", adoptionRouter);
+router.use("/reports", reportsRouter);
 router.use("/", petRouter);
 
 const adminModule = { name: "admin", basePath: "/admin", router };

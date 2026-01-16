@@ -14,6 +14,7 @@ export interface IUser extends Document {
   isSuspended: boolean;
   bio?: string;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
   address?: string | null;
   location?: {
     city?: string;
@@ -75,6 +76,7 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     bio: { type: String, default: "" },
     avatarUrl: { type: String, default: null },
+    coverUrl: { type: String, default: null },
     address: { type: String, default: "" },
     location: {
       city: { type: String, default: "" },

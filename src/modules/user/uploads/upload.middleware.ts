@@ -3,6 +3,7 @@ import { Request } from "express";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const allowedImages = ["image/png", "image/jpg", "image/jpeg", "image/webp"];
+const allowedVideos = ["video/mp4", "video/quicktime", "video/webm"];
 const allowedDocuments = [...allowedImages, "application/pdf"];
 
 const storage = multer.memoryStorage();
@@ -42,3 +43,11 @@ export const uploadDocument = uploadDocs.single("file");
 export const uploadPetHealthFiles = uploadDocs.array("files", 3);
 export const uploadPetHealthRecord = uploadDocs.any();
 export const uploadMessageAttachments = uploadDocs.array("files", 5);
+export const uploadPostMedia = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: createFileFilter(
+    [...allowedImages, ...allowedVideos],
+    "Only png, jpg, jpeg, webp, mp4, mov, and webm files are allowed"
+  ),
+}).array("files", 5);

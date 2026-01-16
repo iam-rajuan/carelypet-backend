@@ -24,6 +24,7 @@ const buildUserResponse = (user: IUser) => ({
   status: user.status,
   username: user.username,
   avatarUrl: user.avatarUrl,
+  coverUrl: user.coverUrl,
   address: user.address,
   location: user.location,
   favorites: user.favorites || [],

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../../../middlewares/auth.middleware";
 import * as usersService from "./users.service";
 import { toUserProfileResponse } from "./users.mapper";
+import * as communityService from "../community/community.service";
 
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
@@ -72,6 +73,13 @@ export const updateAvatar = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
     const user = await usersService.updateOwnAvatar(req.user.id, req.body);
+    if (user.avatarUrl) {
+      try {
+        await communityService.createProfileUpdatePost(req.user.id, user.avatarUrl);
+      } catch (err) {
+        // Ignore post creation failures for avatar updates.
+      }
+    }
     res.json({
       success: true,
       message: "Avatar updated",
@@ -79,6 +87,30 @@ export const updateAvatar = async (req: AuthRequest, res: Response) => {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update avatar";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const updateCover = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    const user = await usersService.updateOwnCover(req.user.id, req.body);
+    if (user.coverUrl) {
+      try {
+        await communityService.createCoverUpdatePost(req.user.id, user.coverUrl);
+      } catch (err) {
+        // Ignore post creation failures for cover updates.
+      }
+    }
+    res.json({
+      success: true,
+      message: "Cover updated",
+      data: toUserProfileResponse(user),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update cover";
     res.status(400).json({ success: false, message });
   }
 };

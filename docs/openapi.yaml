@@ -22,9 +22,11 @@ tags:
   - name: AdminServiceManagement
   - name: AdminAdoption
   - name: AdminAdoptionRequests
+  - name: AdminReports
   - name: UserAuth
   - name: UserProfiles
   - name: UserUploads
+  - name: UserCommunity
 components:
   securitySchemes:
     AccessToken:
@@ -181,6 +183,13 @@ components:
       required: [avatarUrl]
       properties:
         avatarUrl:
+          type: string
+          format: uri
+    UpdateCoverInput:
+      type: object
+      required: [coverUrl]
+      properties:
+        coverUrl:
           type: string
           format: uri
     CompleteProfileInput:
@@ -535,6 +544,9 @@ components:
         avatarUrl:
           type: string
           format: uri
+        coverUrl:
+          type: string
+          format: uri
         address:
           type: string
           example: ""
@@ -579,6 +591,9 @@ components:
           type: string
           example: jane_doe
         avatarUrl:
+          type: string
+          format: uri
+        coverUrl:
           type: string
           format: uri
         address:
@@ -1052,6 +1067,155 @@ components:
         updatedAt:
           type: string
           format: date-time
+    CommunityMedia:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+          enum: [image, video]
+    CommunityPost:
+      type: object
+      properties:
+        id:
+          type: string
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            username:
+              type: string
+            avatarUrl:
+              type: string
+              format: uri
+        text:
+          type: string
+        media:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityMedia"
+        postType:
+          type: string
+          enum: [regular, share, profile_update]
+        shareText:
+          type: string
+        likesCount:
+          type: integer
+        commentsCount:
+          type: integer
+        sharesCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        timeAgo:
+          type: string
+          example: 2 minutes ago
+    CommunityComment:
+      type: object
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            username:
+              type: string
+            avatarUrl:
+              type: string
+              format: uri
+        parentId:
+          type: string
+          nullable: true
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        timeAgo:
+          type: string
+          example: 2 minutes ago
+    CommunityReport:
+      type: object
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        reportedUser:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            username:
+              type: string
+            avatarUrl:
+              type: string
+              format: uri
+        count:
+          type: integer
+        status:
+          type: string
+          enum: [pending, dismissed, removed, warned]
+        reasons:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CommunityPostCreateInput:
+      type: object
+      properties:
+        text:
+          type: string
+          nullable: true
+    CommunityPostUpdateInput:
+      type: object
+      properties:
+        text:
+          type: string
+          nullable: true
+    CommunityCommentCreateInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+    CommunityShareInput:
+      type: object
+      properties:
+        text:
+          type: string
+          nullable: true
+    CommunityReportInput:
+      type: object
+      properties:
+        reason:
+          type: string
+          nullable: true
     ConversationParticipant:
       type: object
       properties:
@@ -3946,6 +4110,51 @@ paths:
           description: Upload failed
         "401":
           description: Unauthorized
+  /uploads/user/cover:
+    post:
+      tags: [UserUploads]
+      summary: Upload user cover (accepts setup or access token)
+      security:
+        - SetupToken: []
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Cover uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      coverUrl:
+                        type: string
+                        format: uri
+                      url:
+                        type: string
+                        format: uri
+                      key:
+                        type: string
+        "400":
+          description: Upload failed
+        "401":
+          description: Unauthorized
   /uploads/pets/{id}/avatar:
     post:
       tags: [UserUploads]
@@ -5504,6 +5713,36 @@ paths:
           description: Update failed
         "401":
           description: Unauthorized
+  /users/me/cover:
+    patch:
+      tags: [UserProfiles]
+      summary: Update own cover URL
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCoverInput"
+      responses:
+        "200":
+          description: Cover updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Update failed
+        "401":
+          description: Unauthorized
   /users/me/delete-request:
     post:
       tags: [UserProfiles]
@@ -5580,3 +5819,593 @@ paths:
           description: Unauthorized
         "404":
           description: User not found
+  /community/posts:
+    post:
+      tags: [UserCommunity]
+      summary: Create a community post
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostCreateInput"
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                files:
+                  type: array
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+    get:
+      tags: [UserCommunity]
+      summary: List community posts
+      security:
+        - AccessToken: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Posts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityPost"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+        "401":
+          description: Unauthorized
+  /community/posts/me:
+    get:
+      tags: [UserCommunity]
+      summary: List my community posts
+      security:
+        - AccessToken: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: My posts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityPost"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+        "401":
+          description: Unauthorized
+  /community/posts/me/photos:
+    get:
+      tags: [UserCommunity]
+      summary: List my post photos
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: My post photos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          format: uri
+                        type:
+                          type: string
+                          enum: [image]
+                        postId:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+        "401":
+          description: Unauthorized
+  /community/posts/{id}:
+    get:
+      tags: [UserCommunity]
+      summary: Get community post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
+        "404":
+          description: Post not found
+    patch:
+      tags: [UserCommunity]
+      summary: Update community post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostUpdateInput"
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                keepMedia:
+                  type: array
+                  items:
+                    type: string
+                deleteMedia:
+                  type: array
+                  items:
+                    type: string
+                files:
+                  type: array
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Post updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
+        "404":
+          description: Post not found
+    delete:
+      tags: [UserCommunity]
+      summary: Delete community post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post deleted
+        "404":
+          description: Post not found
+  /community/posts/{id}/like:
+    post:
+      tags: [UserCommunity]
+      summary: Like or unlike a post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post liked or unliked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
+        "404":
+          description: Post not found
+  /community/posts/{id}/comments:
+    post:
+      tags: [UserCommunity]
+      summary: Add comment to a post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCommentCreateInput"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityComment"
+        "404":
+          description: Post not found
+    get:
+      tags: [UserCommunity]
+      summary: List comments and replies for a post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comments list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        comment:
+                          $ref: "#/components/schemas/CommunityComment"
+                        replies:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/CommunityComment"
+        "404":
+          description: Post not found
+  /community/comments/{id}/replies:
+    post:
+      tags: [UserCommunity]
+      summary: Reply to a comment
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCommentCreateInput"
+      responses:
+        "201":
+          description: Reply added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityComment"
+        "404":
+          description: Comment not found
+  /community/posts/{id}/share:
+    post:
+      tags: [UserCommunity]
+      summary: Share a post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityShareInput"
+      responses:
+        "201":
+          description: Post shared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityPost"
+        "404":
+          description: Post not found
+  /community/posts/{id}/report:
+    post:
+      tags: [UserCommunity]
+      summary: Report a post
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityReportInput"
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "400":
+          description: Validation failed
+  /admin/reports:
+    get:
+      tags: [AdminReports]
+      summary: List community reports
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Reports list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityReport"
+        "401":
+          description: Unauthorized
+  /admin/reports/{id}:
+    get:
+      tags: [AdminReports]
+      summary: Get report details
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "404":
+          description: Report not found
+    delete:
+      tags: [AdminReports]
+      summary: Delete a report
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report deleted
+        "404":
+          description: Report not found
+  /admin/reports/{id}/remove-content:
+    post:
+      tags: [AdminReports]
+      summary: Remove reported content
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Content removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "404":
+          description: Report not found
+  /admin/reports/{id}/warn:
+    post:
+      tags: [AdminReports]
+      summary: Warn reported user
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User warned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "404":
+          description: Report not found
+  /admin/reports/{id}/dismiss:
+    post:
+      tags: [AdminReports]
+      summary: Dismiss a report
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report dismissed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CommunityReport"
+        "404":
+          description: Report not found

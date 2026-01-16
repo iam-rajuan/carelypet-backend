@@ -4,6 +4,7 @@ import { AuthRequest } from "../../../middlewares/auth.middleware";
 import * as uploadsService from "./uploads.service";
 import * as petsService from "../pets/pets.service";
 import * as usersService from "../users/users.service";
+import * as communityService from "../community/community.service";
 
 const documentSchema = z.object({
   title: z.string().trim().min(1, "Document title is required"),
@@ -38,6 +39,11 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response) => {
       "users/avatars"
     );
     const user = await usersService.updateUserAvatar(userId, url);
+    try {
+      await communityService.createProfileUpdatePost(userId, url);
+    } catch (err) {
+      // Ignore post creation failures for avatar updates.
+    }
 
     res.status(201).json({
       success: true,
@@ -46,6 +52,38 @@ export const uploadUserAvatar = async (req: AuthRequest, res: Response) => {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to upload avatar";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const uploadUserCover = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "File is required" });
+    }
+
+    const { url, key } = await uploadsService.uploadFileToS3(
+      req.file.buffer,
+      req.file.mimetype,
+      "users/covers"
+    );
+    const user = await usersService.updateUserCover(userId, url);
+    try {
+      await communityService.createCoverUpdatePost(userId, url);
+    } catch (err) {
+      // Ignore post creation failures for cover updates.
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Cover uploaded",
+      data: { coverUrl: user.coverUrl, url, key },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to upload cover";
     res.status(400).json({ success: false, message });
   }
 };
