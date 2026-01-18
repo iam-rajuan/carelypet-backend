@@ -8,10 +8,32 @@ import {
   CreateServiceInput,
   UpdateServiceInput,
   TaxInput,
+  UpdateServicesInput,
 } from "./settings.validation";
 
+const DEFAULT_SERVICES: Array<Pick<IServiceCatalog, "name" | "type" | "price" | "isActive">> =
+  [
+    { name: "VET", type: "vet", price: 250, isActive: true },
+    { name: "WALKING", type: "walking", price: 250, isActive: true },
+    { name: "GROOMING", type: "grooming", price: 250, isActive: true },
+    { name: "TRAINING", type: "training", price: 250, isActive: true },
+  ];
+
 export const listServices = async (): Promise<IServiceCatalog[]> => {
-  return ServiceCatalog.find().sort({ createdAt: -1 });
+  const existing = await ServiceCatalog.find().sort({ createdAt: -1 });
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  const created = await ServiceCatalog.insertMany(
+    DEFAULT_SERVICES.map((service) => ({
+      name: service.name,
+      type: service.type,
+      price: service.price,
+      isActive: service.isActive,
+    }))
+  );
+  return created;
 };
 
 export const createService = async (payload: CreateServiceInput): Promise<IServiceCatalog> => {
@@ -49,6 +71,29 @@ export const updateService = async (
 
   await service.save();
   return service;
+};
+
+export const updateServices = async (
+  payload: UpdateServicesInput
+): Promise<IServiceCatalog[]> => {
+  const types = payload.services.map((service) => service.type);
+
+  const updates = payload.services.map((service) =>
+    ServiceCatalog.findOneAndUpdate(
+      { type: service.type },
+      {
+        name: service.name.trim(),
+        type: service.type,
+        price: service.price,
+        isActive: service.isActive ?? true,
+      },
+      { upsert: true, new: true }
+    )
+  );
+
+  await Promise.all(updates);
+  await ServiceCatalog.deleteMany({ type: { $nin: types } });
+  return ServiceCatalog.find().sort({ createdAt: -1 });
 };
 
 export const deleteService = async (id: string): Promise<void> => {

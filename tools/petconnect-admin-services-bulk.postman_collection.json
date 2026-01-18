@@ -1,0 +1,53 @@
+{
+  "info": {
+    "name": "PetConnect Admin Services Bulk",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Services",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/admin/settings/services",
+          "host": ["{{baseUrl}}"],
+          "path": ["admin", "settings", "services"]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{access_token}}", "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Replace Services",
+      "request": {
+        "method": "PATCH",
+        "url": {
+          "raw": "{{baseUrl}}/admin/settings/services",
+          "host": ["{{baseUrl}}"],
+          "path": ["admin", "settings", "services"]
+        },
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"services\": [\n    {\n      \"name\": \"VET\",\n      \"type\": \"vet\",\n      \"price\": 250,\n      \"isActive\": true\n    },\n    {\n      \"name\": \"WALKING\",\n      \"type\": \"walking\",\n      \"price\": 250,\n      \"isActive\": true\n    },\n    {\n      \"name\": \"GROOMING\",\n      \"type\": \"grooming\",\n      \"price\": 250,\n      \"isActive\": true\n    },\n    {\n      \"name\": \"TRAINING\",\n      \"type\": \"training\",\n      \"price\": 250,\n      \"isActive\": true\n    }\n  ]\n}"
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{access_token}}", "type": "string" }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "access_token", "value": "" }
+  ]
+}

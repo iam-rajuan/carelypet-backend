@@ -16,6 +16,22 @@ export const updateServiceSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const updateServicesSchema = z.object({
+  services: z
+    .array(
+      z.object({
+        name: z.string().trim().min(2, "Service name is required"),
+        type: z.enum(["vet", "grooming", "training", "walking"] as [
+          ServiceType,
+          ...ServiceType[],
+        ]),
+        price: z.number().min(0, "Price must be zero or greater"),
+        isActive: z.boolean().optional(),
+      })
+    )
+    .min(1, "At least one service is required"),
+});
+
 export const serviceIdParamSchema = z.object({
   id: z.string().trim().min(1, "Service id is required"),
 });
@@ -34,6 +50,7 @@ export const availabilitySchema = z.object({
 
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
+export type UpdateServicesInput = z.infer<typeof updateServicesSchema>;
 export type ServiceIdParam = z.infer<typeof serviceIdParamSchema>;
 export type TaxInput = z.infer<typeof taxSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;

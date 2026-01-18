@@ -9,6 +9,7 @@ import {
   serviceIdParamSchema,
   taxSchema,
   updateServiceSchema,
+  updateServicesSchema,
 } from "./settings.validation";
 
 const router = Router();
@@ -35,6 +36,7 @@ router.use(adminAuth);
 
 router.get("/services", settingsController.listServices);
 router.post("/services", validate(createServiceSchema), settingsController.createService);
+router.patch("/services", validate(updateServicesSchema), settingsController.updateServices);
 router.patch(
   "/services/:id",
   validateParams(serviceIdParamSchema),

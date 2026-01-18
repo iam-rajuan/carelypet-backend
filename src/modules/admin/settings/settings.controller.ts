@@ -5,6 +5,7 @@ import {
   CreateServiceInput,
   TaxInput,
   UpdateServiceInput,
+  UpdateServicesInput,
 } from "./settings.validation";
 
 export const listServices = async (_req: Request, res: Response) => {
@@ -65,6 +66,19 @@ export const setActiveTax = async (req: Request & { body: TaxInput }, res: Respo
     res.status(201).json({ success: true, data: { percent: tax.percent }, message: "Tax updated" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update tax";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const updateServices = async (
+  req: Request & { body: UpdateServicesInput },
+  res: Response
+) => {
+  try {
+    const services = await settingsService.updateServices(req.body);
+    res.json({ success: true, data: services, message: "Services updated" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update services";
     res.status(400).json({ success: false, message });
   }
 };
