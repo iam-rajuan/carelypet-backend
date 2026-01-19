@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
-import { toAdminUserDetails, toAdminUserSummary } from "./users.mapper";
+import { toAdminUserDetails, toAdminUserProfile, toAdminUserSummary } from "./users.mapper";
 
 export const listUsers = async (_req: Request, res: Response) => {
   try {
@@ -35,6 +35,20 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.json({ success: true, message: "User deleted" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to delete user";
+    const status = message === "User not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  try {
+    const profile = await usersService.getPetOwnerProfile(req.params.id);
+    res.json({
+      success: true,
+      data: toAdminUserProfile(profile),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "User not found";
     const status = message === "User not found" ? 404 : 400;
     res.status(status).json({ success: false, message });
   }

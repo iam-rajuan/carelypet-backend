@@ -12,6 +12,7 @@ import {
   reportPostSchema,
   sharePostSchema,
   updatePostSchema,
+  userIdParamSchema,
 } from "./community.validation";
 import * as communityController from "./community.controller";
 import { uploadPostMedia } from "../uploads/upload.middleware";
@@ -65,6 +66,12 @@ router.post("/posts", uploadPostMedia, validate(createPostSchema), communityCont
 router.get("/posts", validateQuery(listPostsQuerySchema), communityController.listPosts);
 router.get("/posts/me", validateQuery(listPostsQuerySchema), communityController.listMyPosts);
 router.get("/posts/me/photos", communityController.listMyPhotos);
+router.get(
+  "/posts/user/:id",
+  validateParams(userIdParamSchema),
+  validateQuery(listPostsQuerySchema),
+  communityController.listUserPosts
+);
 router.get("/posts/:id", validateParams(postIdParamSchema), communityController.getPost);
 router.patch(
   "/posts/:id",

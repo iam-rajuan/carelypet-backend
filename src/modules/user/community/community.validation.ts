@@ -59,6 +59,10 @@ export const commentIdParamSchema = z.object({
   id: z.string().trim().min(1, "Comment ID is required"),
 });
 
+export const userIdParamSchema = z.object({
+  id: z.string().trim().min(1, "User ID is required"),
+});
+
 export const listPostsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),

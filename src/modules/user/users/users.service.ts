@@ -198,3 +198,17 @@ export const searchUsers = async (userId: string, query: string) => {
     .lean();
 };
 
+export const listPetPals = async (userId: string, limit: number) => {
+  const safeLimit = Number.isNaN(limit) || limit < 1 ? 15 : Math.min(limit, 20);
+  return User.find({
+    _id: { $ne: userId },
+    role: "user",
+    status: "active",
+    isSuspended: { $ne: true },
+  })
+    .sort({ createdAt: -1 })
+    .limit(safeLimit)
+    .select("name username avatarUrl bio lastSeenAt")
+    .lean();
+};
+

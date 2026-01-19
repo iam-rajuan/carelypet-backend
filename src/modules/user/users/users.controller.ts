@@ -180,3 +180,28 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const listPetPals = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    const { limit } = (req as Request & { validatedQuery?: { limit?: number } })
+      .validatedQuery || { limit: 15 };
+    const pals = await usersService.listPetPals(req.user.id, limit ?? 15);
+    res.json({
+      success: true,
+      data: pals.map((user) => ({
+        id: String(user._id),
+        name: user.name,
+        username: user.username,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio || "",
+        lastSeenAt: user.lastSeenAt || null,
+      })),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch pet pals";
+    res.status(400).json({ success: false, message });
+  }
+};
+

@@ -1,0 +1,143 @@
+{
+  "info": {
+    "name": "PetConnect User Pet Pals",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Auth",
+      "item": [
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  const token = json && json.data && json.data.tokens && json.data.tokens.accessToken;",
+                  "  if (token) {",
+                  "    pm.collectionVariables.set(\"access_token\", token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pet Pals",
+      "item": [
+        {
+          "name": "List Pet Pals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/pet-pals?limit={{limit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "pet-pals"],
+              "query": [
+                { "key": "limit", "value": "{{limit}}" }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{access_token}}", "type": "string" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Pet Pal Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{pet_pal_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{pet_pal_id}}"]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{access_token}}", "type": "string" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pet Pal Community",
+      "item": [
+        {
+          "name": "List Pet Pal Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/community/posts/user/{{pet_pal_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["community", "posts", "user", "{{pet_pal_id}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{access_token}}", "type": "string" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Adoptions",
+      "item": [
+        {
+          "name": "List Available Adoptions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/adoption?status=available",
+              "host": ["{{baseUrl}}"],
+              "path": ["adoption"],
+              "query": [
+                { "key": "status", "value": "available" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "access_token", "value": "" },
+    { "key": "user_email", "value": "" },
+    { "key": "user_password", "value": "" },
+    { "key": "pet_pal_id", "value": "" },
+    { "key": "limit", "value": "15" }
+  ]
+}

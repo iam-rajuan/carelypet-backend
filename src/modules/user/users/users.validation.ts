@@ -58,9 +58,14 @@ export const userSearchQuerySchema = z.object({
   query: z.string().trim().min(1, "Search query is required"),
 });
 
+export const petPalsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(20).optional(),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateAvatarInput = z.infer<typeof updateAvatarSchema>;
 export type UpdateCoverInput = z.infer<typeof updateCoverSchema>;
 export type UserIdParam = z.infer<typeof userIdParamSchema>;
 export type UserSearchQuery = z.infer<typeof userSearchQuerySchema>;
+export type PetPalsQuery = z.infer<typeof petPalsQuerySchema>;

@@ -105,6 +105,27 @@ export const listMyPhotos = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const listUserPosts = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+    const { page, limit } = (req as Request & { validatedQuery?: any }).validatedQuery || {};
+    const result = await communityService.listPosts({
+      page,
+      limit,
+      authorId: req.params.id,
+    });
+    res.json({
+      success: true,
+      data: result.data.map(toCommunityPostResponse),
+      pagination: result.pagination,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch posts";
+    res.status(400).json({ success: false, message });
+  }
+};
+
 export const updatePost = async (req: AuthRequest, res: Response) => {
   try {
     const userId = requireUser(req, res);

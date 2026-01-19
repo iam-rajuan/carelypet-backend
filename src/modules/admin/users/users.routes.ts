@@ -26,6 +26,12 @@ const validateParams =
 
 router.get("/", adminAuth, usersController.listUsers);
 router.get("/export", adminAuth, usersController.exportUsersCsv);
+router.get(
+  "/:id/profile",
+  adminAuth,
+  validateParams(adminUserIdParamSchema),
+  usersController.getUserProfile
+);
 router.get("/:id", adminAuth, validateParams(adminUserIdParamSchema), usersController.getUserDetails);
 router.delete("/:id", adminAuth, validateParams(adminUserIdParamSchema), usersController.deleteUser);
 

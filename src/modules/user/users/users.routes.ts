@@ -9,6 +9,7 @@ import {
   updateCoverSchema,
   userIdParamSchema,
   userSearchQuerySchema,
+  petPalsQuerySchema,
 } from "./users.validation";
 import * as usersController from "./users.controller";
 
@@ -60,6 +61,7 @@ const validateQuery =
 router.use(auth);
 
 router.get("/me", usersController.getMe);
+router.get("/pet-pals", validateQuery(petPalsQuerySchema), usersController.listPetPals);
 router.get("/search", validateQuery(userSearchQuerySchema), usersController.searchUsers);
 router.get("/:id", validateParams(userIdParamSchema), usersController.getUserById);
 router.patch("/me", validate(updateProfileSchema), usersController.updateMe);
