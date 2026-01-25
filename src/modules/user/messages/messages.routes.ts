@@ -81,6 +81,11 @@ router.post(
   validateParams(conversationIdParamSchema),
   messagesController.markConversationRead
 );
+router.delete(
+  "/conversations/:id",
+  validateParams(conversationIdParamSchema),
+  messagesController.deleteConversation
+);
 router.get(
   "/users/search",
   validateQuery(userSearchQuerySchema),

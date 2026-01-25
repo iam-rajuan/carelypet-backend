@@ -275,6 +275,24 @@ export const markConversationRead = async (
   return result.modifiedCount;
 };
 
+export const deleteConversation = async (
+  userId: string,
+  conversationId: string
+): Promise<number> => {
+  const conversation = await Conversation.findOne({
+    _id: conversationId,
+    participants: userId,
+  });
+  if (!conversation) {
+    throw new Error("Conversation not found");
+  }
+
+  await Message.deleteMany({ conversation: conversation._id });
+  const result = await Conversation.deleteOne({ _id: conversation._id });
+
+  return result.deletedCount || 0;
+};
+
 export const updateMessage = async (
   userId: string,
   messageId: string,

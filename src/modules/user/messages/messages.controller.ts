@@ -158,6 +158,23 @@ export const markConversationRead = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const deleteConversation = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = requireUser(req, res);
+    if (!userId) return;
+
+    const deleted = await messagesService.deleteConversation(userId, req.params.id);
+    res.json({
+      success: true,
+      data: { deleted },
+      message: "Conversation deleted",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to delete conversation";
+    res.status(400).json({ success: false, message });
+  }
+};
+
 export const searchUsers = async (req: AuthRequest, res: Response) => {
   try {
     const userId = requireUser(req, res);
