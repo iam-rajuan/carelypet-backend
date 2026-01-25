@@ -322,7 +322,6 @@ export const deleteMessage = async (userId: string, messageId: string): Promise<
     return message;
   }
 
-  message.body = "";
   message.deletedAt = new Date();
   await message.save();
 
