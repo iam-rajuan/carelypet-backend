@@ -7,6 +7,8 @@ export interface IAdmin extends Document {
   isVerified: boolean;
   resetPasswordToken?: string | null;
   resetPasswordExpires?: Date | null;
+  resetPasswordVerified?: boolean;
+  resetPasswordVerifiedExpires?: Date | null;
   tokenVersion?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +22,8 @@ const adminSchema = new mongoose.Schema<IAdmin>(
     isVerified: { type: Boolean, default: true },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    resetPasswordVerified: { type: Boolean, default: false },
+    resetPasswordVerifiedExpires: { type: Date, default: null },
     tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }

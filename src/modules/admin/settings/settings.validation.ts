@@ -48,9 +48,14 @@ export const availabilitySchema = z.object({
   slotMinutes: z.number().int().min(5, "Slot minutes must be >= 5").max(240),
 });
 
+export const termsSchema = z.object({
+  content: z.string().trim().min(1, "Terms content is required"),
+});
+
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
 export type UpdateServicesInput = z.infer<typeof updateServicesSchema>;
 export type ServiceIdParam = z.infer<typeof serviceIdParamSchema>;
 export type TaxInput = z.infer<typeof taxSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;
+export type TermsInput = z.infer<typeof termsSchema>;

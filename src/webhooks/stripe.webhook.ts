@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { env } from "../env";
 import ServiceBooking from "../modules/services/serviceBooking.model";
+import AdoptionOrder from "../modules/user/adoption/adoptionOrder.model";
+import AdoptionRequest from "../modules/user/adoption/adoptionRequest.model";
+import AdoptionListing from "../modules/user/adoption/adoption.model";
 
 const buildStripe = (): Stripe => {
   if (!env.STRIPE_SECRET_KEY) {
@@ -39,6 +42,33 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       booking.paymentStatus = "paid";
       booking.paidAt = new Date();
       await booking.save();
+    }
+
+    const adoptionOrder = await AdoptionOrder.findOne({ paymentIntentId: intent.id });
+    if (adoptionOrder && adoptionOrder.paymentStatus !== "paid") {
+      adoptionOrder.paymentStatus = "paid";
+      adoptionOrder.status = "paid";
+      adoptionOrder.paidAt = new Date();
+      await adoptionOrder.save();
+
+      const listingIds = adoptionOrder.items.map((item) => item.listing.toString());
+      const listings = await AdoptionListing.find({ _id: { $in: listingIds } });
+      await Promise.all(
+        listings.map((listing) => {
+          listing.status = "pending";
+          return listing.save();
+        })
+      );
+
+      await Promise.all(
+        listingIds.map((listingId) =>
+          AdoptionRequest.findOneAndUpdate(
+            { listing: listingId, customer: adoptionOrder.customer },
+            { status: "pending" },
+            { upsert: true, new: true }
+          )
+        )
+      );
     }
   }
 

@@ -8,6 +8,7 @@ import {
   createServiceSchema,
   serviceIdParamSchema,
   taxSchema,
+  termsSchema,
   updateServiceSchema,
   updateServicesSchema,
 } from "./settings.validation";
@@ -58,5 +59,7 @@ router.patch(
   validate(availabilitySchema),
   settingsController.updateAvailability
 );
+router.get("/terms", settingsController.getTerms);
+router.put("/terms", validate(termsSchema), settingsController.updateTerms);
 
 export default router;

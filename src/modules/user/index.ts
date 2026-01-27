@@ -11,6 +11,7 @@ import bookingsModule from "./bookings";
 import paymentsModule from "./payments";
 import messagesModule from "./messages";
 import communityModule from "./community";
+import legalModule from "./legal";
 
 export interface UserModuleDefinition {
   name: string;
@@ -31,6 +32,7 @@ const userModules: UserModuleDefinition[] = [
   paymentsModule,
   messagesModule,
   communityModule,
+  legalModule,
 ];
 
 export default userModules;

@@ -13,13 +13,18 @@ export const forgotPasswordSchema = z.object({
   email: z.email("Invalid email format").trim(),
 });
 
-export const resetPasswordSchema = z.object({
+export const verifyOtpSchema = z.object({
   email: z.email("Invalid email format").trim(),
   otp: z.string().trim().length(6, "OTP must be 6 digits"),
-  password: z.string().trim().min(6, "Password must be at least 6 characters"),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.email("Invalid email format").trim(),
+  newPassword: z.string().trim().min(6, "New password must be at least 6 characters"),
 });
 
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

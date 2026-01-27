@@ -111,6 +111,31 @@ const getLatestVitalSigns = (pet: IPet) => {
   };
 };
 
+export const toAdminPetProfile = (
+  pet: IPet,
+  adoptionStatusMap: Record<string, AdoptionStatus>
+) => ({
+  id: pet._id,
+  status: adoptionStatusMap[pet._id.toString()] || "owned",
+  name: pet.name,
+  age: pet.age ?? null,
+  memoryStart: pet.createdAt,
+  type: pet.species,
+  gender: pet.gender || "",
+  breed: pet.breed || "",
+  trained: pet.trained ?? false,
+  neutered: pet.neutered ?? false,
+  vaccinated: pet.vaccinated ?? false,
+  avatarUrl: pet.avatarUrl,
+  photos: pet.photos || [],
+  vitalSigns: getLatestVitalSigns(pet),
+  personality: pet.personality || [],
+  aboutPet: pet.bio || "",
+  healthRecordCounts: buildHealthRecordCounts(pet),
+});
+
+export const toAdminServiceProfile = (service: IServiceBooking) => toServiceDetails(service);
+
 export const toAdminUserProfile = (payload: {
   user: IUser;
   pets: IPet[];
@@ -139,25 +164,7 @@ export const toAdminUserProfile = (payload: {
       deletionRequestedAt: deletionInfo.deletionRequestedAt,
       deletionDaysLeft: deletionInfo.daysLeft,
     },
-    pets: payload.pets.map((pet) => ({
-      id: pet._id,
-      status: payload.adoptionStatusMap[pet._id.toString()] || "owned",
-      name: pet.name,
-      age: pet.age ?? null,
-      memoryStart: pet.createdAt,
-      type: pet.species,
-      gender: pet.gender || "",
-      breed: pet.breed || "",
-      trained: pet.trained ?? false,
-      neutered: pet.neutered ?? false,
-      vaccinated: pet.vaccinated ?? false,
-      avatarUrl: pet.avatarUrl,
-      photos: pet.photos || [],
-      vitalSigns: getLatestVitalSigns(pet),
-      personality: pet.personality || [],
-      aboutPet: pet.bio || "",
-      healthRecordCounts: buildHealthRecordCounts(pet),
-    })),
-    services: payload.services.map((service) => toServiceDetails(service)),
+    pets: payload.pets.map((pet) => toAdminPetProfile(pet, payload.adoptionStatusMap)),
+    services: payload.services.map((service) => toAdminServiceProfile(service)),
   };
 };

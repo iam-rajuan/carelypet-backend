@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
-import { toAdminUserDetails, toAdminUserProfile, toAdminUserSummary } from "./users.mapper";
+import {
+  toAdminPetProfile,
+  toAdminServiceProfile,
+  toAdminUserDetails,
+  toAdminUserProfile,
+  toAdminUserSummary,
+} from "./users.mapper";
 
 export const listUsers = async (_req: Request, res: Response) => {
   try {
@@ -46,6 +52,34 @@ export const getUserProfile = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: toAdminUserProfile(profile),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "User not found";
+    const status = message === "User not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const getUserPets = async (req: Request, res: Response) => {
+  try {
+    const { pets, adoptionStatusMap } = await usersService.getPetOwnerPets(req.params.id);
+    res.json({
+      success: true,
+      data: pets.map((pet) => toAdminPetProfile(pet, adoptionStatusMap)),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "User not found";
+    const status = message === "User not found" ? 404 : 400;
+    res.status(status).json({ success: false, message });
+  }
+};
+
+export const getUserServices = async (req: Request, res: Response) => {
+  try {
+    const services = await usersService.getPetOwnerServices(req.params.id);
+    res.json({
+      success: true,
+      data: services.map((service) => toAdminServiceProfile(service)),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "User not found";

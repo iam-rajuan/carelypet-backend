@@ -28,6 +28,7 @@ export interface IAdoptionListing extends Document {
   breed?: string;
   age?: number;
   weightLbs?: number;
+  price?: number;
   gender?: "male" | "female";
   trained?: boolean;
   vaccinated?: boolean;
@@ -51,6 +52,13 @@ export interface IAdoptionListing extends Document {
       recordName: string;
       batchLotNo?: string;
       otherInfo?: string;
+      cost?: string;
+      date?: string;
+      nextDueDate?: string;
+      reminder?: {
+        enabled: boolean;
+        offset?: string;
+      };
     };
     veterinarian: {
       designation?: string;
@@ -66,7 +74,13 @@ export interface IAdoptionListing extends Document {
       respiratory?: string;
       status?: "normal" | "high" | "low";
     };
+    observation?: {
+      lookupObservations?: string[];
+      clinicalNotes?: string;
+    };
     attachments?: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
   }>;
 
   createdAt: Date;
@@ -95,6 +109,7 @@ const adoptionListingSchema = new Schema<IAdoptionListing>(
     breed: { type: String, trim: true },
     age: { type: Number },
     weightLbs: { type: Number },
+    price: { type: Number, default: 0 },
     gender: { type: String, enum: ["male", "female"], default: undefined },
     avatarUrl: { type: String, default: null },
     trained: { type: Boolean, default: false },
@@ -131,6 +146,13 @@ const adoptionListingSchema = new Schema<IAdoptionListing>(
             recordName: { type: String, required: true },
             batchLotNo: { type: String, default: "" },
             otherInfo: { type: String, default: "" },
+            cost: { type: String, default: "" },
+            date: { type: String, default: "" },
+            nextDueDate: { type: String, default: "" },
+            reminder: {
+              enabled: { type: Boolean, default: false },
+              offset: { type: String, default: "" },
+            },
           },
           veterinarian: {
             designation: { type: String, default: "" },
@@ -146,7 +168,13 @@ const adoptionListingSchema = new Schema<IAdoptionListing>(
             respiratory: { type: String, default: "" },
             status: { type: String, enum: ["normal", "high", "low"], default: "normal" },
           },
+          observation: {
+            lookupObservations: { type: [String], default: [] },
+            clinicalNotes: { type: String, default: "" },
+          },
           attachments: { type: [String], default: [] },
+          createdAt: { type: Date, default: Date.now },
+          updatedAt: { type: Date, default: Date.now },
         },
       ],
       default: [],

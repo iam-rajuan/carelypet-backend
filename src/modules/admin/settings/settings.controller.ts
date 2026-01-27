@@ -3,6 +3,7 @@ import * as settingsService from "./settings.service";
 import {
   AvailabilityInput,
   CreateServiceInput,
+  TermsInput,
   TaxInput,
   UpdateServiceInput,
   UpdateServicesInput,
@@ -127,6 +128,36 @@ export const updateAvailability = async (
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update availability";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const getTerms = async (_req: Request, res: Response) => {
+  try {
+    const terms = await settingsService.getTerms();
+    res.json({
+      success: true,
+      data: {
+        content: terms?.content ?? "",
+        updatedAt: terms?.updatedAt ?? null,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch terms";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const updateTerms = async (req: Request & { body: TermsInput }, res: Response) => {
+  try {
+    const terms = await settingsService.updateTerms(req.body);
+    res.json({
+      success: true,
+      message: "Terms updated",
+      data: { content: terms.content, updatedAt: terms.updatedAt },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update terms";
     res.status(400).json({ success: false, message });
   }
 };

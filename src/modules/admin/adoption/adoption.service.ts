@@ -63,8 +63,8 @@ export const listAdoptionRequests = async (
 
 export const getAdoptionRequest = async (id: string): Promise<IAdoptionRequest> => {
   const request = await AdoptionRequest.findById(id)
-    .populate("customer", "name phone")
-    .populate("listing", "species breed age status petName");
+    .populate("customer", "name phone address")
+    .populate("listing", "petName species breed age gender avatarUrl photos status");
   if (!request) {
     throw new Error("Adoption request not found");
   }

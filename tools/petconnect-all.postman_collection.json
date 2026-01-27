@@ -584,7 +584,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"Password123!\"\n}"
+              "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"Password123!\",\n  \"confirmPassword\": \"Password123!\"\n}"
             },
             "auth": {
               "type": "bearer",
@@ -3286,7 +3286,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"Password123!\"\n}"
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"otp\": \"123456\",\n  \"password\": \"Password123!\",\n  \"confirmPassword\": \"Password123!\"\n}"
             }
           }
         }

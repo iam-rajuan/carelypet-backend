@@ -32,7 +32,22 @@ export const listingQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).optional(),
 });
 
+export const basketItemSchema = z.object({
+  listingId: z.string().trim().min(1, "Listing id is required"),
+});
+
+export const checkoutSchema = z.object({
+  listingIds: z.array(z.string().trim().min(1)).min(1, "At least one listing is required"),
+  customer: z.object({
+    name: z.string().trim().min(1, "Customer name is required"),
+    address: z.string().trim().min(1, "Customer address is required"),
+    phone: z.string().trim().min(1, "Customer phone is required"),
+  }),
+});
+
 export type CreateAdoptionListingInput = z.infer<typeof createAdoptionListingSchema>;
 export type UpdateAdoptionStatusInput = z.infer<typeof updateAdoptionStatusSchema>;
 export type ListingIdParam = z.infer<typeof listingIdParamSchema>;
 export type ListingQueryInput = z.infer<typeof listingQuerySchema>;
+export type BasketItemInput = z.infer<typeof basketItemSchema>;
+export type CheckoutInput = z.infer<typeof checkoutSchema>;

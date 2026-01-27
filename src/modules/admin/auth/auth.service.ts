@@ -5,6 +5,7 @@ import {
   AdminLoginInput,
   RefreshTokenInput,
   ForgotPasswordInput,
+  VerifyOtpInput,
   ResetPasswordInput,
 } from "./auth.validation";
 import { signAccessToken, signRefreshToken, verifyToken } from "../../../utils/jwt";
@@ -167,6 +168,8 @@ export const forgotPassword = async ({ email }: ForgotPasswordInput): Promise<vo
   const otp = generateOtp();
   adminUser.resetPasswordToken = otp;
   adminUser.resetPasswordExpires = addMinutes(10);
+  adminUser.resetPasswordVerified = false;
+  adminUser.resetPasswordVerifiedExpires = null;
   await adminUser.save();
 
   await sendMail({
@@ -176,11 +179,7 @@ export const forgotPassword = async ({ email }: ForgotPasswordInput): Promise<vo
   });
 };
 
-export const resetPassword = async ({
-  email,
-  otp,
-  password,
-}: ResetPasswordInput): Promise<void> => {
+export const verifyOtp = async ({ email, otp }: VerifyOtpInput): Promise<void> => {
   const normalizedEmail = email.trim().toLowerCase();
   const adminUser = requireAdmin(await Admin.findOne({ email: normalizedEmail }));
   if (
@@ -192,9 +191,37 @@ export const resetPassword = async ({
     throw new Error("Invalid or expired OTP");
   }
 
-  const hashed = await bcrypt.hash(password.trim(), 10);
-  adminUser.password = hashed;
+  adminUser.resetPasswordVerified = true;
+  adminUser.resetPasswordVerifiedExpires = addMinutes(10);
   adminUser.resetPasswordToken = null;
   adminUser.resetPasswordExpires = null;
+  await adminUser.save();
+};
+
+export const resetPassword = async ({
+  email,
+  newPassword,
+}: ResetPasswordInput): Promise<void> => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const adminUser = requireAdmin(await Admin.findOne({ email: normalizedEmail }));
+  if (
+    !adminUser.resetPasswordVerified ||
+    !adminUser.resetPasswordVerifiedExpires ||
+    adminUser.resetPasswordVerifiedExpires < new Date()
+  ) {
+    throw new Error("OTP verification required or expired");
+  }
+
+  const hashed = await bcrypt.hash(newPassword.trim(), 10);
+  adminUser.password = hashed;
+  adminUser.resetPasswordVerified = false;
+  adminUser.resetPasswordVerifiedExpires = null;
+  await adminUser.save();
+
+  await AdminRefreshToken.updateMany(
+    { admin: adminUser._id, revoked: false },
+    { revoked: true, revokedAt: new Date() }
+  );
+  adminUser.tokenVersion = (adminUser.tokenVersion ?? 0) + 1;
   await adminUser.save();
 };

@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "Adoption (User App)",
+    "_postman_id": "d8f6a3a1-4c7b-4d2a-9c9f-7f3c1e2a4b55",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const token = json?.data?.tokens?.accessToken;",
+              "if (token) pm.collectionVariables.set('userToken', token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Adoptable Pets",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/adoptions?status=available",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions"],
+          "query": [
+            { "key": "status", "value": "available" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List Adopted Pets",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/adoptions?status=adopted",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions"],
+          "query": [
+            { "key": "status", "value": "adopted" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Know Me (Adoption Detail)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/{{listingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "{{listingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Health Records List (Vaccination)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/{{listingId}}/health-records?type=vaccination",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "{{listingId}}", "health-records"],
+          "query": [
+            { "key": "type", "value": "vaccination" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health Record Detail",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/{{listingId}}/health-records/{{recordId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "{{listingId}}", "health-records", "{{recordId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Basket",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/basket",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "basket"]
+        }
+      }
+    },
+    {
+      "name": "Add To Basket",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{userToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/basket/items",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "basket", "items"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"listingId\": \"{{listingId}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Remove From Basket",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{userToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/basket/items/{{listingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "basket", "items", "{{listingId}}"]
+        }
+      }
+    },
+    {
+      "name": "Checkout Basket",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{userToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/adoptions/basket/checkout",
+          "host": ["{{baseUrl}}"],
+          "path": ["adoptions", "basket", "checkout"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"listingIds\": [\"{{listingId}}\"],\n  \"customer\": {\n    \"name\": \"{{customerName}}\",\n    \"address\": \"{{customerAddress}}\",\n    \"phone\": \"{{customerPhone}}\"\n  }\n}"
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "userEmail", "value": "user@example.com" },
+    { "key": "userPassword", "value": "change-me" },
+    { "key": "userToken", "value": "" },
+    { "key": "listingId", "value": "" },
+    { "key": "recordId", "value": "" },
+    { "key": "customerName", "value": "John Doe" },
+    { "key": "customerAddress", "value": "43, John Hopkins Road, NYC" },
+    { "key": "customerPhone", "value": "555-656-5656" }
+  ]
+}

@@ -8,6 +8,8 @@ import {
   listingIdParamSchema,
   updateAdoptionStatusSchema,
   listingQuerySchema,
+  basketItemSchema,
+  checkoutSchema,
 } from "./adoption.validation";
 import * as adoptionController from "./adoption.controller";
 
@@ -64,24 +66,38 @@ router.get(
   adoptionController.listAdoptionListings
 );
 router.get(
-  "/:id",
+  "/:id/health-records",
   validateParams(listingIdParamSchema),
-  adoptionController.getAdoptionListingById
+  adoptionController.listHealthRecords
+);
+router.get(
+  "/:id/health-records/:recordId",
+  adoptionController.getHealthRecord
 );
 
 // 🔐 Authenticated endpoints
-router.use(auth);
+router.get("/basket", auth, adoptionController.getBasket);
+router.post("/basket/items", auth, validate(basketItemSchema), adoptionController.addBasketItem);
+router.delete("/basket/items/:listingId", auth, adoptionController.removeBasketItem);
+router.post(
+  "/basket/checkout",
+  auth,
+  validate(checkoutSchema),
+  adoptionController.checkoutBasket
+);
 
-router.get("/me/listings", adoptionController.getMyAdoptionListings);
+router.get("/me/listings", auth, adoptionController.getMyAdoptionListings);
 
 router.post(
   "/",
+  auth,
   validate(createAdoptionListingSchema),
   adoptionController.createAdoptionListing
 );
 
 router.post(
   "/:id/request",
+  auth,
   validateParams(listingIdParamSchema),
   adoptionController.requestAdoption
 );
@@ -89,6 +105,7 @@ router.post(
 // Admin-only status management (Available/Pending/Adopted)
 router.patch(
   "/:id/status",
+  auth,
   requireRole("admin"),
   validateParams(listingIdParamSchema),
   validate(updateAdoptionStatusSchema),
@@ -98,8 +115,16 @@ router.patch(
 // Owner or admin can delete
 router.delete(
   "/:id",
+  auth,
   validateParams(listingIdParamSchema),
   adoptionController.deleteAdoptionListing
+);
+
+// Public detail endpoint (keep last to avoid matching /basket, etc.)
+router.get(
+  "/:id",
+  validateParams(listingIdParamSchema),
+  adoptionController.getAdoptionListingById
 );
 
 export default router;

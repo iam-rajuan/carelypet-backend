@@ -5,6 +5,7 @@ import {
   AdminLoginInput,
   RefreshTokenInput,
   ForgotPasswordInput,
+  VerifyOtpInput,
   ResetPasswordInput,
 } from "./auth.validation";
 
@@ -71,6 +72,19 @@ export const forgotPassword = async (
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Request failed";
+    res.status(400).json({ success: false, message });
+  }
+};
+
+export const verifyOtp = async (
+  req: AuthRequest & { body: VerifyOtpInput },
+  res: Response
+) => {
+  try {
+    await authService.verifyOtp(req.body);
+    res.json({ success: true, message: "OTP verified" });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Verification failed";
     res.status(400).json({ success: false, message });
   }
 };

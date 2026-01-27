@@ -3,9 +3,13 @@ import TaxSetting, { ITaxSetting } from "../../services/taxSetting.model";
 import AvailabilitySetting, {
   IAvailabilitySetting,
 } from "../../services/availabilitySetting.model";
+import TermsAndConditions, {
+  ITermsAndConditions,
+} from "../../services/termsAndConditions.model";
 import {
   AvailabilityInput,
   CreateServiceInput,
+  TermsInput,
   UpdateServiceInput,
   TaxInput,
   UpdateServicesInput,
@@ -145,4 +149,18 @@ export const updateAvailabilitySetting = async (
   setting.slotMinutes = payload.slotMinutes;
   await setting.save();
   return setting;
+};
+
+export const getTerms = async (): Promise<ITermsAndConditions | null> => {
+  return TermsAndConditions.findOne({ type: "terms" }).sort({ updatedAt: -1 });
+};
+
+export const updateTerms = async (payload: TermsInput): Promise<ITermsAndConditions> => {
+  const content = payload.content.trim();
+  const updated = await TermsAndConditions.findOneAndUpdate(
+    { type: "terms" },
+    { content },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+  return updated;
 };

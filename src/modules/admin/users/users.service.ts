@@ -82,3 +82,42 @@ export const getPetOwnerProfile = async (
     services,
   };
 };
+
+export const getPetOwnerPets = async (
+  userId: string
+): Promise<{ pets: IPet[]; adoptionStatusMap: Record<string, AdoptionStatus> }> => {
+  const user = await User.findOne({ _id: userId, role: "user" });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const pets = await Pet.find({ owner: user._id }).sort({ createdAt: -1 });
+  const petIds = pets.map((pet) => pet._id);
+  const adoptionStatusMap: Record<string, AdoptionStatus> = {};
+  if (petIds.length > 0) {
+    const listings = await AdoptionListing.find({ pet: { $in: petIds } }).select(
+      "pet status"
+    );
+    for (const listing of listings) {
+      if (listing.pet) {
+        adoptionStatusMap[listing.pet.toString()] = listing.status;
+      }
+    }
+  }
+
+  return { pets, adoptionStatusMap };
+};
+
+export const getPetOwnerServices = async (userId: string): Promise<IServiceBooking[]> => {
+  const user = await User.findOne({ _id: userId, role: "user" });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const services = await ServiceBooking.find({ customer: user._id })
+    .sort({ createdAt: -1 })
+    .populate({ path: "customer", select: "name phone" })
+    .populate({ path: "provider", select: "name" });
+
+  return services;
+};

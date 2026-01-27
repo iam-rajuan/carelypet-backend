@@ -2,7 +2,7 @@ import router from "./adoption.routes";
 
 const adoptionModule = {
   name: "adoption",
-  basePath: "/adoption",
+  basePath: "/adoptions",
   router,
 };
 

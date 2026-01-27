@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as adoptionService from "./adoption.service";
 import {
   toAdminAdoptionListItem,
+  toAdminAdoptionRequestDetails,
   toAdminAdoptionRequestListItem,
   toAdminAdoptionSummaryItem,
 } from "./adoption.mapper";
@@ -53,7 +54,10 @@ const parseHealthRecords = (value: unknown, healthFiles: Express.Multer.File[]):
       recordDetails: record.recordDetails,
       veterinarian: record.veterinarian,
       vitalSigns: record.vitalSigns,
+      observation: record.observation,
       attachments,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
   });
 };
@@ -164,6 +168,7 @@ export const createAdoption = async (req: Request, res: Response) => {
       breed: req.body.breed,
       age: req.body.petAge ? Number(req.body.petAge) : undefined,
       weightLbs: req.body.weightLbs ? Number(req.body.weightLbs) : undefined,
+      price: req.body.price ? Number(req.body.price) : 0,
       gender: req.body.gender,
       trained: parseBoolean(req.body.trained),
       vaccinated: parseBoolean(req.body.vaccinated),
@@ -238,7 +243,7 @@ export const listAdoptionRequests = async (req: Request, res: Response) => {
 export const getAdoptionRequest = async (req: Request, res: Response) => {
   try {
     const request = await adoptionService.getAdoptionRequest(req.params.id);
-    res.json({ success: true, data: request });
+    res.json({ success: true, data: toAdminAdoptionRequestDetails(request) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Adoption request not found";
     const status = message === "Adoption request not found" ? 404 : 400;
@@ -285,7 +290,10 @@ export const addHealthRecord = async (req: Request, res: Response) => {
       recordDetails: parseJsonField(req.body.recordDetails, {}),
       veterinarian: parseJsonField(req.body.veterinarian, {}),
       vitalSigns: parseJsonField(req.body.vitalSigns, {}),
+      observation: parseJsonField(req.body.observation, {}),
       attachments: uploads.map((item) => item.url),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const listing = await adoptionService.addHealthRecord(req.params.id, record);

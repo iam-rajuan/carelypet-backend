@@ -32,6 +32,18 @@ router.get(
   validateParams(adminUserIdParamSchema),
   usersController.getUserProfile
 );
+router.get(
+  "/:id/pets",
+  adminAuth,
+  validateParams(adminUserIdParamSchema),
+  usersController.getUserPets
+);
+router.get(
+  "/:id/services",
+  adminAuth,
+  validateParams(adminUserIdParamSchema),
+  usersController.getUserServices
+);
 router.get("/:id", adminAuth, validateParams(adminUserIdParamSchema), usersController.getUserDetails);
 router.delete("/:id", adminAuth, validateParams(adminUserIdParamSchema), usersController.deleteUser);
 

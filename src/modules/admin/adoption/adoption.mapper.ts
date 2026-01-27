@@ -1,11 +1,22 @@
 import { IAdoptionListing } from "../../user/adoption/adoption.model";
 import { IAdoptionRequest } from "../../user/adoption/adoptionRequest.model";
+import mongoose from "mongoose";
+
+const toIdString = (value?: mongoose.Types.ObjectId | string): string => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value.toString();
+};
+
+const isPopulated = <T extends object>(value: unknown): value is T =>
+  !!value && typeof value === "object";
 
 export const toAdminAdoptionListItem = (listing: IAdoptionListing) => ({
   id: listing._id,
   petType: listing.species,
   petBreed: listing.breed,
   petAge: listing.age,
+  price: listing.price ?? 0,
   status: listing.status,
   petName: listing.petName,
 });
@@ -16,26 +27,80 @@ export const toAdminAdoptionSummaryItem = (listing: IAdoptionListing) => ({
   petType: listing.species,
   petBreed: listing.breed,
   petAge: listing.age,
+  price: listing.price ?? 0,
   status: listing.status,
 });
 
 export const toAdminAdoptionRequestListItem = (request: IAdoptionRequest) => ({
   id: request._id,
+  listingId: isPopulated<{ _id?: mongoose.Types.ObjectId | string }>(request.listing)
+    ? toIdString(request.listing._id)
+    : toIdString(request.listing as mongoose.Types.ObjectId | string),
+  customerId: isPopulated<{ _id?: mongoose.Types.ObjectId | string }>(request.customer)
+    ? toIdString(request.customer._id)
+    : toIdString(request.customer as mongoose.Types.ObjectId | string),
   customerName:
-    typeof request.customer === "object" && request.customer
-      ? (request.customer as { name?: string }).name
+    isPopulated<{ name?: string }>(request.customer) ? request.customer.name
       : "",
   petType:
-    typeof request.listing === "object" && request.listing
-      ? (request.listing as { species?: string }).species
+    isPopulated<{ species?: string }>(request.listing) ? request.listing.species
       : "",
   petBreed:
-    typeof request.listing === "object" && request.listing
-      ? (request.listing as { breed?: string }).breed
+    isPopulated<{ breed?: string }>(request.listing) ? request.listing.breed
       : "",
   petAge:
-    typeof request.listing === "object" && request.listing
-      ? (request.listing as { age?: number }).age
+    isPopulated<{ age?: number }>(request.listing) ? request.listing.age
       : null,
   status: request.status,
 });
+
+export const toAdminAdoptionRequestDetails = (request: IAdoptionRequest) => {
+  type CustomerInfo = {
+    _id?: mongoose.Types.ObjectId | string;
+    name?: string;
+    phone?: string;
+    address?: string;
+  };
+  type ListingInfo = {
+    _id?: mongoose.Types.ObjectId | string;
+    petName?: string;
+    species?: string;
+    breed?: string;
+    age?: number;
+    gender?: string;
+    avatarUrl?: string;
+    photos?: string[];
+    status?: string;
+  };
+
+  const customer = isPopulated<CustomerInfo>(request.customer)
+    ? (request.customer as CustomerInfo)
+    : undefined;
+  const listing = isPopulated<ListingInfo>(request.listing)
+    ? (request.listing as ListingInfo)
+    : undefined;
+
+  return {
+    id: request._id,
+    status: request.status,
+    orderId: request._id,
+    orderDate: request.createdAt,
+    customer: {
+      id: toIdString(customer?._id),
+      name: customer?.name || "",
+      phone: customer?.phone || "",
+      address: customer?.address || "",
+    },
+    listing: {
+      id: toIdString(listing?._id),
+      petName: listing?.petName || "",
+      petType: listing?.species || "",
+      petBreed: listing?.breed || "",
+      petAge: listing?.age ?? null,
+      petGender: listing?.gender || "",
+      avatarUrl: listing?.avatarUrl || "",
+      photos: listing?.photos || [],
+      status: listing?.status || "",
+    },
+  };
+};
