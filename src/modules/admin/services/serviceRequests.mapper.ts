@@ -13,6 +13,16 @@ const firstOrNull = <T>(values: (T | null | undefined)[]): T | null => {
   return null;
 };
 
+const formatAge = (age: number | null | undefined) => {
+  if (age === null || age === undefined) {
+    return "";
+  }
+  return `${age} ${age === 1 ? "year" : "years"}`;
+};
+
+const formatAgeList = (ages: (number | null | undefined)[]) =>
+  joinOrEmpty(ages.map(formatAge));
+
 const buildTotal = (price: number, taxPercent: number) => {
   const tax = (price * taxPercent) / 100;
   return Number((price + tax).toFixed(2));
@@ -37,6 +47,7 @@ export const toServiceSummary = (request: IServiceBooking) => {
     petType: joinOrEmpty(petTypes),
     petBreed: joinOrEmpty(petBreeds),
     petAge: firstOrNull(petAges),
+    petAgeLabel: formatAgeList(petAges),
     status: request.status,
     createdAt: request.createdAt,
   };
@@ -70,6 +81,7 @@ export const toServiceDetails = (request: IServiceBooking) => {
       type: joinOrEmpty(items.map((item) => item.petType)),
       breed: joinOrEmpty(items.map((item) => item.petBreed || "")),
       age: firstOrNull(items.map((item) => item.petAge)),
+      ageLabel: formatAgeList(items.map((item) => item.petAge)),
     },
     orderSummary: {
       serviceName: joinOrEmpty(items.map((item) => item.serviceName)),

@@ -1771,6 +1771,10 @@ components:
       properties:
         id:
           type: string
+        listingId:
+          type: string
+        customerId:
+          type: string
         customerName:
           type: string
         petType:
@@ -1783,6 +1787,172 @@ components:
         status:
           type: string
           enum: [pending, delivered]
+    AdminAdoptionSummaryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        petName:
+          type: string
+        petType:
+          type: string
+        petBreed:
+          type: string
+        petAge:
+          type: integer
+          nullable: true
+        price:
+          type: number
+        status:
+          type: string
+          enum: [available, pending, adopted]
+    PetPalSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        lastSeenAt:
+          type: string
+          format: date-time
+          nullable: true
+    AdminUserProfileResponse:
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            username:
+              type: string
+            avatarUrl:
+              type: string
+              format: uri
+              nullable: true
+            coverUrl:
+              type: string
+              format: uri
+              nullable: true
+            status:
+              type: string
+            reportCount:
+              type: integer
+            reportOnPostCount:
+              type: integer
+            email:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            address:
+              type: string
+              nullable: true
+            city:
+              type: string
+              nullable: true
+            country:
+              type: string
+              nullable: true
+            joiningDate:
+              type: string
+              format: date-time
+            deletionRequestedAt:
+              type: string
+              format: date-time
+              nullable: true
+            deletionDaysLeft:
+              type: integer
+              nullable: true
+        pets:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              status:
+                type: string
+              name:
+                type: string
+              age:
+                type: integer
+                nullable: true
+              memoryStart:
+                type: string
+                format: date-time
+              type:
+                type: string
+              gender:
+                type: string
+              breed:
+                type: string
+              trained:
+                type: boolean
+              neutered:
+                type: boolean
+              vaccinated:
+                type: boolean
+              avatarUrl:
+                type: string
+                format: uri
+                nullable: true
+              photos:
+                type: array
+                items:
+                  type: string
+                  format: uri
+              vitalSigns:
+                type: object
+                properties:
+                  heartRate:
+                    type: string
+                  respiratory:
+                    type: string
+                  temperature:
+                    type: string
+                  weight:
+                    type: string
+              personality:
+                type: array
+                items:
+                  type: string
+              aboutPet:
+                type: string
+              healthRecordCounts:
+                type: object
+                properties:
+                  vaccination:
+                    type: integer
+                  checkup:
+                    type: integer
+                  medication:
+                    type: integer
+                  tick_flea:
+                    type: integer
+                  surgery:
+                    type: integer
+                  dental:
+                    type: integer
+                  other:
+                    type: integer
+        services:
+          type: array
+          items:
+            type: object
     AdminAdoptionRequestDetails:
       type: object
       properties:
@@ -3216,6 +3386,33 @@ paths:
                     type: string
                   data:
                     $ref: "#/components/schemas/AdoptionListing"
+  /admin/adoptions/summary:
+    get:
+      tags: [AdminAdoption]
+      summary: List adoption pets summary
+      security:
+        - AccessToken: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [available, pending, adopted]
+      responses:
+        "200":
+          description: Adoption summary list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminAdoptionSummaryItem"
   /admin/adoptions/{id}:
     get:
       tags: [AdminAdoption]
@@ -3588,7 +3785,7 @@ paths:
                     $ref: "#/components/schemas/AdminAdoptionRequestDetails"
         "404":
           description: Adoption request not found
-  /adoption/{id}/request:
+  /adoptions/{id}/request:
     post:
       tags: [UserAdoption]
       summary: Request adoption
@@ -3852,6 +4049,34 @@ paths:
                     type: boolean
                   message:
                     type: string
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+  /admin/users/{id}/profile:
+    get:
+      tags: [AdminUsers]
+      summary: Get pet owner profile (admin view)
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/AdminUserProfileResponse"
         "401":
           description: Unauthorized
         "404":
@@ -5645,7 +5870,7 @@ paths:
           description: Unauthorized
         "404":
           description: Conversation not found
-  /adoption:
+  /adoptions:
     get:
       tags: [UserAdoption]
       summary: List adoption listings
@@ -5735,7 +5960,7 @@ paths:
                     $ref: "#/components/schemas/AdoptionListing"
         "400":
           description: Validation failed
-  /adoption/{id}:
+  /adoptions/{id}:
     get:
       tags: [UserAdoption]
       summary: Get adoption listing by id
@@ -5784,7 +6009,7 @@ paths:
                     type: string
         "404":
           description: Adoption listing not found or not authorized
-  /adoption/{id}/status:
+  /adoptions/{id}/status:
     patch:
       tags: [UserAdoption]
       summary: Update adoption status (admin only)
@@ -5818,7 +6043,7 @@ paths:
                     $ref: "#/components/schemas/AdoptionListing"
         "404":
           description: Adoption listing not found
-  /adoption/me/listings:
+  /adoptions/me/listings:
     get:
       tags: [UserAdoption]
       summary: List my adoption listings
@@ -5838,6 +6063,211 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/AdoptionListing"
+        "401":
+          description: Unauthorized
+  /adoptions/basket:
+    get:
+      tags: [UserAdoption]
+      summary: Get adoption basket
+      security:
+        - AccessToken: []
+      responses:
+        "200":
+          description: Basket items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            listingId:
+                              type: string
+                            petName:
+                              type: string
+                            petType:
+                              type: string
+                            petBreed:
+                              type: string
+                            petAge:
+                              type: integer
+                              nullable: true
+                            avatarUrl:
+                              type: string
+                              format: uri
+                              nullable: true
+                            price:
+                              type: number
+                            status:
+                              type: string
+        "401":
+          description: Unauthorized
+  /adoptions/basket/items:
+    post:
+      tags: [UserAdoption]
+      summary: Add item to adoption basket
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [listingId]
+              properties:
+                listingId:
+                  type: string
+      responses:
+        "200":
+          description: Added to basket
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+        "401":
+          description: Unauthorized
+  /adoptions/basket/items/{listingId}:
+    delete:
+      tags: [UserAdoption]
+      summary: Remove item from adoption basket
+      security:
+        - AccessToken: []
+      parameters:
+        - name: listingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Removed from basket
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+        "401":
+          description: Unauthorized
+  /adoptions/basket/checkout:
+    post:
+      tags: [UserAdoption]
+      summary: Checkout adoption basket
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [listingIds, customer]
+              properties:
+                listingIds:
+                  type: array
+                  items:
+                    type: string
+                customer:
+                  type: object
+                  required: [name, address, phone]
+                  properties:
+                    name:
+                      type: string
+                    address:
+                      type: string
+                    phone:
+                      type: string
+      responses:
+        "201":
+          description: Checkout created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      orderId:
+                        type: string
+                      paymentIntentId:
+                        type: string
+                        nullable: true
+                      clientSecret:
+                        type: string
+                        nullable: true
+                      customer:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          phone:
+                            type: string
+                      subtotal:
+                        type: number
+                      taxPercent:
+                        type: number
+                      taxAmount:
+                        type: number
+                      processingFee:
+                        type: number
+                      shippingFee:
+                        type: number
+                      total:
+                        type: number
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            listing:
+                              type: string
+                            petName:
+                              type: string
+                            petType:
+                              type: string
+                            petBreed:
+                              type: string
+                            petAge:
+                              type: integer
+                              nullable: true
+                            petGender:
+                              type: string
+                            avatarUrl:
+                              type: string
+                              format: uri
+                              nullable: true
+                            price:
+                              type: number
+        "400":
+          description: Checkout failed
         "401":
           description: Unauthorized
   /users/me:
@@ -5921,6 +6351,37 @@ paths:
           description: Validation failed
         "401":
           description: Unauthorized
+  /users/pet-pals:
+    get:
+      tags: [UserProfiles]
+      summary: List pet pals (other users)
+      security:
+        - AccessToken: []
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            example: 15
+      responses:
+        "200":
+          description: Pet pals list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PetPalSummary"
+        "401":
+          description: Unauthorized
   /users/me/password:
     patch:
       tags: [UserProfiles]
@@ -5952,12 +6413,19 @@ paths:
   /users/me/avatar:
     patch:
       tags: [UserProfiles]
-      summary: Update own avatar URL
+      summary: Update own avatar (file upload or URL)
       security:
         - AccessToken: []
       requestBody:
         required: true
         content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateAvatarInput"
@@ -6194,6 +6662,58 @@ paths:
       responses:
         "200":
           description: My posts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CommunityPost"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalPages:
+                        type: integer
+        "401":
+          description: Unauthorized
+  /community/posts/user/{id}:
+    get:
+      tags: [UserCommunity]
+      summary: List community posts for a user
+      security:
+        - AccessToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: User posts list
           content:
             application/json:
               schema:
