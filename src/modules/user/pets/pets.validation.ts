@@ -90,7 +90,7 @@ const jsonSchema = <T extends z.ZodTypeAny>(schema: T) =>
   }, schema);
 
 const recordDetailsSchema = z.object({
-  recordName: z.string().trim().min(1, "Record name is required"),
+  recordName: z.string().trim().optional(),
   batchLotNo: z.string().trim().optional(),
   otherInfo: z.string().trim().optional(),
   cost: z.string().trim().optional(),
@@ -146,7 +146,7 @@ const baseHealthRecordSchema = {
 };
 
 const flatHealthRecordSchema = {
-  recordType: z.string().trim().optional(),
+  recordType: z.string().trim().min(1, "Record type is required"),
   recordName: z.string().trim().optional(),
   batchNumber: z.string().trim().optional(),
   otherInfo: z.string().trim().optional(),
@@ -256,13 +256,6 @@ const requireFullHealthRecord = (value: any, ctx: z.RefinementCtx) => {
   requireText(clinicalNotes, "Clinical notes are required");
 };
 
-const requireRecordName = (value: any, ctx: z.RefinementCtx) => {
-  const name = value.recordName || value.recordDetails?.recordName || "";
-  if (!String(name).trim()) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Record name is required" });
-  }
-};
-
 const createTypedHealthRecordSchema = (type: HealthRecordType, requireFull: boolean) =>
   z
     .object({
@@ -272,7 +265,6 @@ const createTypedHealthRecordSchema = (type: HealthRecordType, requireFull: bool
     })
     .passthrough()
     .superRefine((value, ctx) => {
-      requireRecordName(value, ctx);
       if (!requireFull) return;
       requireFullHealthRecord(value, ctx);
     });
@@ -345,7 +337,6 @@ export const createHealthRecordSchema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Record type is required" });
       return;
     }
-    requireRecordName(value, ctx);
     if (type !== "vaccination" && type !== "checkup") return;
     requireFullHealthRecord(value, ctx);
   });
@@ -365,9 +356,9 @@ export const healthRecordListQuerySchema = z.object({
 
 export const createVaccinationHealthRecordSchema = createTypedHealthRecordSchema(
   "vaccination",
-  true
+  false
 );
-export const createCheckupHealthRecordSchema = createTypedHealthRecordSchema("checkup", true);
+export const createCheckupHealthRecordSchema = createTypedHealthRecordSchema("checkup", false);
 export const createMedicationHealthRecordSchema = createTypedHealthRecordSchema(
   "medication",
   false
