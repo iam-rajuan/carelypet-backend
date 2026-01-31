@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import AdoptionListing, { IAdoptionListing, AdoptionStatus } from "./adoption.model";
 import { CreateAdoptionListingInput, ListingQueryInput } from "./adoption.validation";
 import { ensureOwnedPet } from "../pets/pets.service";
@@ -272,6 +273,15 @@ export const getOrCreateBasket = async (userId: string): Promise<IAdoptionBasket
   return AdoptionBasket.create({ user: userId, items: [] });
 };
 
+const resolveBasketListingId = (item: IAdoptionBasket["items"][number]): string => {
+  const listing = item.listing as unknown;
+  if (typeof listing === "string") return listing;
+  if (listing instanceof mongoose.Types.ObjectId) return listing.toString();
+  const withId = listing as { _id?: mongoose.Types.ObjectId | string } | null;
+  if (withId?._id) return withId._id.toString();
+  return "";
+};
+
 export const addToBasket = async (
   userId: string,
   listingId: string
@@ -282,7 +292,9 @@ export const addToBasket = async (
   }
 
   const basket = await getOrCreateBasket(userId);
-  const exists = basket.items.some((item) => item.listing.toString() === listingId);
+  const exists = basket.items.some(
+    (item) => resolveBasketListingId(item) === listingId
+  );
   if (!exists) {
     basket.items.push({ listing: listing._id, addedAt: new Date() });
     await basket.save();
@@ -296,7 +308,9 @@ export const removeFromBasket = async (
   listingId: string
 ): Promise<IAdoptionBasket> => {
   const basket = await getOrCreateBasket(userId);
-  basket.items = basket.items.filter((item) => item.listing.toString() !== listingId);
+  basket.items = basket.items.filter(
+    (item) => resolveBasketListingId(item) !== listingId
+  );
   await basket.save();
   return AdoptionBasket.findOne({ user: userId }).populate("items.listing") as Promise<IAdoptionBasket>;
 };
