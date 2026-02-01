@@ -363,24 +363,6 @@ export const createAdoptionOrder = async (payload: {
     currency,
   });
 
-  for (const listing of listings) {
-    const existingRequest = await AdoptionRequest.findOne({
-      listing: listing._id,
-      customer: payload.userId,
-    });
-    if (!existingRequest) {
-      await AdoptionRequest.create({
-        listing: listing._id,
-        customer: payload.userId,
-        status: "pending",
-      });
-    }
-    if (listing.status !== "pending") {
-      listing.status = "pending";
-      await listing.save();
-    }
-  }
-
   try {
     const paymentIntent = await createPaymentIntent({
       amount: Math.round(total * 100),
@@ -391,8 +373,6 @@ export const createAdoptionOrder = async (payload: {
 
     order.paymentIntentId = paymentIntent.id;
     await order.save();
-
-    await clearBasket(payload.userId);
 
     return { order, clientSecret: paymentIntent.clientSecret };
   } catch (err) {
@@ -428,8 +408,13 @@ export const getUserOrders = async (userId: string): Promise<IAdoptionOrder[]> =
           }
           await order.save();
         }
+        console.log(
+          `[adoption-history-sync] order=${order._id.toString()} intent=${order.paymentIntentId} status=${intent.status}`
+        );
       } catch {
-        // Ignore Stripe lookup failures; return current order state.
+        console.log(
+          `[adoption-history-sync] order=${order._id.toString()} intent=${order.paymentIntentId} status=error`
+        );
       }
     })
   );

@@ -5,6 +5,7 @@ import ServiceBooking from "../modules/services/serviceBooking.model";
 import AdoptionOrder from "../modules/user/adoption/adoptionOrder.model";
 import AdoptionRequest from "../modules/user/adoption/adoptionRequest.model";
 import AdoptionListing from "../modules/user/adoption/adoption.model";
+import { clearBasket } from "../modules/user/adoption/adoption.service";
 
 const buildStripe = (): Stripe => {
   if (!env.STRIPE_SECRET_KEY) {
@@ -69,6 +70,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
           )
         )
       );
+
+      await clearBasket(adoptionOrder.customer.toString());
     }
   }
 

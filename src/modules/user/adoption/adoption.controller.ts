@@ -315,6 +315,7 @@ export const getAdoptionHistory = async (req: AuthRequest, res: Response) => {
       paidAt: order.paidAt ?? null,
       createdAt: order.createdAt,
       currency: order.currency,
+      paymentIntentId: order.paymentIntentId ?? null,
       subtotal: order.subtotal,
       taxPercent: order.taxPercent,
       taxAmount: order.taxAmount,
