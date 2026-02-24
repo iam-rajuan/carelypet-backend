@@ -9,6 +9,7 @@ import adoptionRouter from "./adoption/adoption.routes";
 import reportsRouter from "./reports/reports.routes";
 import dashboardRouter from "./dashboard/dashboard.routes";
 import analyticsRouter from "./analytics/analytics.routes";
+import notificationsRouter from "./notifications/notifications.routes";
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use("/adoptions", adoptionRouter);
 router.use("/reports", reportsRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/analytics", analyticsRouter);
+router.use("/notifications", notificationsRouter);
 router.use("/", petRouter);
 
 const adminModule = { name: "admin", basePath: "/admin", router };

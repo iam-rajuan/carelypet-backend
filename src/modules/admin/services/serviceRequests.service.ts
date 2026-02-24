@@ -1,5 +1,6 @@
 import ServiceBooking, { IServiceBooking } from "../../services/serviceBooking.model";
 import { ServiceRequestQuery, UpdateServiceStatusInput } from "./serviceRequests.validation";
+import * as notificationService from "../../notifications/notification.service";
 
 export const listServiceRequests = async (
   query: ServiceRequestQuery
@@ -64,6 +65,26 @@ export const updateServiceStatus = async (
     );
   }
   await request.save();
+
+  try {
+    await notificationService.createForUser({
+      recipientId: String(request.customer),
+      type: "booking_status_updated",
+      title: "Service booking updated",
+      body: `Your booking status is now "${request.status}".`,
+      priority: request.status === "completed" ? "high" : "normal",
+      entityType: "booking",
+      entityId: String(request._id),
+      dedupeKey: `booking-status:${String(request._id)}:${request.status}`,
+      metadata: {
+        status: request.status,
+        paymentStatus: request.paymentStatus,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create booking status notification:", message);
+  }
 
   return request;
 };

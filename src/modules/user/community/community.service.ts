@@ -7,6 +7,7 @@ import {
   IPostMedia,
   ReportStatus,
 } from "./community.model";
+import * as notificationService from "../../notifications/notification.service";
 
 const sanitizePagination = (page?: number, limit?: number) => {
   const safePage = !page || Number.isNaN(page) || page < 1 ? 1 : Math.floor(page);
@@ -296,7 +297,7 @@ export const reportPost = async (userId: string, postId: string, reason?: string
 
   const report = await CommunityReport.findOne({ post: post._id });
   if (!report) {
-    return CommunityReport.create({
+    const created = await CommunityReport.create({
       post: post._id,
       reportedUser: post.author,
       reporters: [new mongoose.Types.ObjectId(userId)],
@@ -305,6 +306,25 @@ export const reportPost = async (userId: string, postId: string, reason?: string
       status: "pending",
       lastReportedAt: new Date(),
     });
+
+    try {
+      const reporter = await User.findById(userId).select("name").lean();
+      await notificationService.createForAdmins({
+        type: "community_report_created",
+        title: "New community report",
+        body: `${reporter?.name || "A user"} reported a community post.`,
+        priority: "high",
+        entityType: "community_report",
+        entityId: String(created._id),
+        dedupeKey: `community-report-created:${String(created._id)}`,
+        metadata: { postId, reportedUserId: String(post.author), reason: reason || null },
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[notifications] Failed to create report notification:", message);
+    }
+
+    return created;
   }
 
   const alreadyReported = report.reporters.some((id) => id.toString() === userId);
@@ -319,6 +339,23 @@ export const reportPost = async (userId: string, postId: string, reason?: string
       report.status = "pending";
     }
     await report.save();
+
+    try {
+      const reporter = await User.findById(userId).select("name").lean();
+      await notificationService.createForAdmins({
+        type: "community_report_updated",
+        title: "Community report updated",
+        body: `${reporter?.name || "A user"} added to an existing report.`,
+        priority: "normal",
+        entityType: "community_report",
+        entityId: String(report._id),
+        dedupeKey: `community-report-updated:${String(report._id)}:${report.count}`,
+        metadata: { postId, reportCount: report.count, reason: reason || null },
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[notifications] Failed to create report update notification:", message);
+    }
   }
 
   return report;
@@ -351,6 +388,29 @@ export const updateReportStatus = async (reportId: string, status: ReportStatus)
   }
   report.status = status;
   await report.save();
+
+  try {
+    if (status === "warned" || status === "removed") {
+      await notificationService.createForUser({
+        recipientId: String(report.reportedUser),
+        type: "community_report_actioned",
+        title: "Community moderation update",
+        body:
+          status === "removed"
+            ? "Your reported content was removed by admin."
+            : "Admin issued a warning for reported content.",
+        priority: "high",
+        entityType: "community_report",
+        entityId: String(report._id),
+        dedupeKey: `community-report-status:${String(report._id)}:${status}`,
+        metadata: { status },
+      });
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create moderation notification:", message);
+  }
+
   return report;
 };
 
@@ -373,6 +433,24 @@ export const removeReportedContent = async (reportId: string) => {
   ]);
   report.status = "removed";
   await report.save();
+
+  try {
+    await notificationService.createForUser({
+      recipientId: String(report.reportedUser),
+      type: "community_report_actioned",
+      title: "Community moderation update",
+      body: "Your reported content was removed by admin.",
+      priority: "high",
+      entityType: "community_report",
+      entityId: String(report._id),
+      dedupeKey: `community-report-status:${String(report._id)}:removed`,
+      metadata: { status: "removed" },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create remove-content notification:", message);
+  }
+
   return report;
 };
 

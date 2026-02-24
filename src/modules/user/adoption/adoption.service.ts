@@ -10,6 +10,7 @@ import TaxSetting from "../../services/taxSetting.model";
 import { calculateTotals } from "../../services/pricing.service";
 import { env } from "../../../env";
 import { createPaymentIntent, retrievePaymentIntent } from "../bookings/stripe.service";
+import * as notificationService from "../../notifications/notification.service";
 
 export interface PaginatedAdoptionListings {
   data: IAdoptionListing[];
@@ -200,6 +201,42 @@ export const createAdoptionRequest = async (
 
   listing.status = "pending";
   await listing.save();
+
+  try {
+    const requester = await User.findById(userId).select("name").lean();
+    const petName = listing.petName || "pet";
+
+    await notificationService.createForAdmins({
+      type: "adoption_request_created",
+      title: "New adoption request",
+      body: `${requester?.name || "A user"} requested adoption for ${petName}.`,
+      priority: "high",
+      entityType: "adoption_request",
+      entityId: String(request._id),
+      dedupeKey: `adoption-request-created:${String(request._id)}`,
+      metadata: {
+        listingId,
+        customerId: userId,
+      },
+    });
+
+    if (listing.owner && String(listing.owner) !== userId) {
+      await notificationService.createForUser({
+        recipientId: String(listing.owner),
+        type: "adoption_request_received",
+        title: "New adoption request",
+        body: `${requester?.name || "A user"} requested to adopt ${petName}.`,
+        priority: "high",
+        entityType: "adoption_request",
+        entityId: String(request._id),
+        dedupeKey: `adoption-request-received:${String(request._id)}:${String(listing.owner)}`,
+        metadata: { listingId, customerId: userId },
+      });
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create adoption request notifications:", message);
+  }
 
   return request;
 };

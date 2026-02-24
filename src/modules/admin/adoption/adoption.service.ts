@@ -4,6 +4,7 @@ import AdoptionRequest, {
   IAdoptionRequest,
 } from "../../user/adoption/adoptionRequest.model";
 import AdoptionOrder from "../../user/adoption/adoptionOrder.model";
+import * as notificationService from "../../notifications/notification.service";
 
 export const listAdoptionListings = async (
   status?: string
@@ -128,9 +129,37 @@ export const updateAdoptionRequestStatus = async (
   request.status = status;
   await request.save();
 
+  const customerId = resolveId(request.customer);
+  const listingId = resolveId(request.listing);
+
+  try {
+    const listing = listingId
+      ? await AdoptionListing.findById(listingId).select("petName").lean()
+      : null;
+    const petName = listing?.petName || "your pet adoption";
+
+    if (customerId) {
+      await notificationService.createForUser({
+        recipientId: customerId,
+        type: "adoption_request_status_updated",
+        title: "Adoption request updated",
+        body:
+          status === "delivered"
+            ? `Great news. Your adoption request for ${petName} was approved.`
+            : `Your adoption request for ${petName} is now pending review.`,
+        priority: status === "delivered" ? "high" : "normal",
+        entityType: "adoption_request",
+        entityId: String(request._id),
+        dedupeKey: `adoption-request-status:${String(request._id)}:${status}`,
+        metadata: { status, listingId },
+      });
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create adoption status notification:", message);
+  }
+
   if (status === "delivered") {
-    const listingId = resolveId(request.listing);
-    const customerId = resolveId(request.customer);
     if (listingId) {
       await AdoptionListing.updateOne({ _id: listingId }, { status: "adopted" });
     }

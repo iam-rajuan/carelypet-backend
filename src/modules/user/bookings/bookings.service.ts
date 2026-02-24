@@ -7,6 +7,8 @@ import { calculateTotals } from "../../services/pricing.service";
 import { env } from "../../../env";
 import { CreateBookingInput, BookingQuery } from "./bookings.validation";
 import { createPaymentIntent } from "./stripe.service";
+import User from "../users/user.model";
+import * as notificationService from "../../notifications/notification.service";
 
 const parseDate = (value: string): Date => {
   const parsed = new Date(value);
@@ -172,6 +174,39 @@ export const createBooking = async (
     total,
     currency,
   });
+
+  try {
+    const customer = await User.findById(userId).select("name").lean();
+    const scheduledAtIso = booking.scheduledAt.toISOString();
+    const serviceNames = Array.from(new Set(booking.items.map((item) => item.serviceName))).join(
+      ", "
+    );
+
+    await Promise.all([
+      notificationService.createForUser({
+        recipientId: userId,
+        type: "booking_created",
+        title: "Booking created",
+        body: `Your booking for ${serviceNames || "services"} is pending confirmation.`,
+        entityType: "booking",
+        entityId: String(booking._id),
+        metadata: { scheduledAt: scheduledAtIso, status: booking.status },
+      }),
+      notificationService.createForAdmins({
+        type: "booking_created",
+        title: "New service booking",
+        body: `${customer?.name || "A user"} created a booking for ${scheduledAtIso}.`,
+        priority: "high",
+        entityType: "booking",
+        entityId: String(booking._id),
+        dedupeKey: `booking-created:${String(booking._id)}`,
+        metadata: { customerId: userId, scheduledAt: scheduledAtIso },
+      }),
+    ]);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create booking notifications:", message);
+  }
 
   try {
     const paymentIntent = await createPaymentIntent({

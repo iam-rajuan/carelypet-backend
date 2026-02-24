@@ -3,6 +3,7 @@ import Conversation, { IConversation } from "./conversation.model";
 import Message, { IMessage } from "./message.model";
 import User from "../users/user.model";
 import { CreateMessageInput, MessageQuery } from "./messages.validation";
+import * as notificationService from "../../notifications/notification.service";
 
 const buildParticipantKey = (userId: string, otherUserId: string) =>
   [userId, otherUserId].sort().join(":");
@@ -178,7 +179,7 @@ export const createMessage = async (
   payload: CreateMessageInput
 ): Promise<IMessage> => {
   const { recipientId, body } = payload;
-  const sender = await User.findById(senderId).select("blockedUsers");
+  const sender = await User.findById(senderId).select("name blockedUsers");
   if (sender?.blockedUsers?.map((id) => String(id)).includes(recipientId)) {
     throw new Error("Recipient is not available");
   }
@@ -195,6 +196,22 @@ export const createMessage = async (
   conversation.lastMessageAt = message.createdAt;
   await conversation.save();
 
+  try {
+    await notificationService.createForUser({
+      recipientId,
+      type: "message_received",
+      title: `New message from ${sender?.name || "Someone"}`,
+      body: body.trim().slice(0, 120),
+      priority: "normal",
+      entityType: "conversation",
+      entityId: String(conversation._id),
+      metadata: { messageId: String(message._id), senderId },
+    });
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create message notification:", error);
+  }
+
   return message;
 };
 
@@ -209,7 +226,7 @@ export const createMessageWithAttachments = async (
     size: number;
   }[]
 ): Promise<IMessage> => {
-  const sender = await User.findById(senderId).select("blockedUsers");
+  const sender = await User.findById(senderId).select("name blockedUsers");
   if (sender?.blockedUsers?.map((id) => String(id)).includes(recipientId)) {
     throw new Error("Recipient is not available");
   }
@@ -226,6 +243,30 @@ export const createMessageWithAttachments = async (
   conversation.lastMessage = message._id;
   conversation.lastMessageAt = message.createdAt;
   await conversation.save();
+
+  try {
+    const trimmedBody = body.trim();
+    await notificationService.createForUser({
+      recipientId,
+      type: "message_received",
+      title: `New message from ${sender?.name || "Someone"}`,
+      body:
+        trimmedBody.length > 0
+          ? trimmedBody.slice(0, 120)
+          : "Sent you a media attachment",
+      priority: "normal",
+      entityType: "conversation",
+      entityId: String(conversation._id),
+      metadata: {
+        messageId: String(message._id),
+        senderId,
+        hasAttachments: attachments.length > 0,
+      },
+    });
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error("[notifications] Failed to create message notification:", error);
+  }
 
   return message;
 };

@@ -6,6 +6,7 @@ import AdoptionOrder from "../modules/user/adoption/adoptionOrder.model";
 import AdoptionRequest from "../modules/user/adoption/adoptionRequest.model";
 import AdoptionListing from "../modules/user/adoption/adoption.model";
 import { clearBasket } from "../modules/user/adoption/adoption.service";
+import * as notificationService from "../modules/notifications/notification.service";
 
 const buildStripe = (): Stripe => {
   if (!env.STRIPE_SECRET_KEY) {
@@ -43,6 +44,35 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       booking.paymentStatus = "paid";
       booking.paidAt = new Date();
       await booking.save();
+
+      try {
+        await Promise.all([
+          notificationService.createForUser({
+            recipientId: String(booking.customer),
+            type: "payment_received",
+            title: "Payment received",
+            body: "Your service booking payment was confirmed.",
+            priority: "high",
+            entityType: "booking",
+            entityId: String(booking._id),
+            dedupeKey: `payment-booking:${intent.id}`,
+            metadata: { paymentIntentId: intent.id },
+          }),
+          notificationService.createForAdmins({
+            type: "payment_received",
+            title: "Booking payment succeeded",
+            body: `Payment received for booking ${String(booking._id)}.`,
+            priority: "high",
+            entityType: "booking",
+            entityId: String(booking._id),
+            dedupeKey: `payment-booking-admin:${intent.id}`,
+            metadata: { paymentIntentId: intent.id, bookingId: String(booking._id) },
+          }),
+        ]);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[notifications] Failed to create booking payment notifications:", message);
+      }
     }
 
     const adoptionOrder = await AdoptionOrder.findOne({ paymentIntentId: intent.id });
@@ -72,6 +102,35 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       );
 
       await clearBasket(adoptionOrder.customer.toString());
+
+      try {
+        await Promise.all([
+          notificationService.createForUser({
+            recipientId: String(adoptionOrder.customer),
+            type: "payment_received",
+            title: "Payment received",
+            body: "Your adoption order payment was confirmed.",
+            priority: "high",
+            entityType: "adoption_order",
+            entityId: String(adoptionOrder._id),
+            dedupeKey: `payment-adoption:${intent.id}`,
+            metadata: { paymentIntentId: intent.id },
+          }),
+          notificationService.createForAdmins({
+            type: "payment_received",
+            title: "Adoption payment succeeded",
+            body: `Payment received for adoption order ${String(adoptionOrder._id)}.`,
+            priority: "high",
+            entityType: "adoption_order",
+            entityId: String(adoptionOrder._id),
+            dedupeKey: `payment-adoption-admin:${intent.id}`,
+            metadata: { paymentIntentId: intent.id, orderId: String(adoptionOrder._id) },
+          }),
+        ]);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[notifications] Failed to create adoption payment notifications:", message);
+      }
     }
   }
 
