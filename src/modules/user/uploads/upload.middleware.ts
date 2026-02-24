@@ -32,6 +32,15 @@ const uploadDocs = multer({
   ),
 });
 
+const uploadMessageMedia = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: createFileFilter(
+    [...allowedImages, ...allowedVideos],
+    "Only png, jpg, jpeg, webp, mp4, mov, and webm files are allowed"
+  ),
+});
+
 export const uploadSingleImage = uploadImages.single("file");
 export const uploadMultipleImages = uploadImages.array("files", 5);
 export const uploadPetCreateImages = uploadImages.array("files", 3);
@@ -42,7 +51,7 @@ export const uploadPetCreateMedia = uploadImages.fields([
 export const uploadDocument = uploadDocs.single("file");
 export const uploadPetHealthFiles = uploadDocs.array("files", 3);
 export const uploadPetHealthRecord = uploadDocs.any();
-export const uploadMessageAttachments = uploadDocs.array("files", 5);
+export const uploadMessageAttachments = uploadMessageMedia.array("files", 5);
 export const uploadPostMedia = multer({
   storage,
   limits: { fileSize: MAX_FILE_SIZE },

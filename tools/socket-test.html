@@ -134,8 +134,8 @@
         <input type="text" id="aSearch" placeholder="search users by name" />
         <label>Block user ID</label>
         <input type="text" id="aBlockUserId" placeholder="user id to block/unblock" />
-        <label>Attachment files</label>
-        <input type="file" id="aFiles" multiple />
+        <label>Attachment files (images/videos)</label>
+        <input type="file" id="aFiles" accept="image/*,video/mp4,video/quicktime,video/webm" multiple />
         <div class="row">
           <button id="aListConversations" class="secondary">List Conversations</button>
           <button id="aListMessages" class="secondary">List Messages</button>
@@ -187,8 +187,8 @@
         <input type="text" id="bSearch" placeholder="search users by name" />
         <label>Block user ID</label>
         <input type="text" id="bBlockUserId" placeholder="user id to block/unblock" />
-        <label>Attachment files</label>
-        <input type="file" id="bFiles" multiple />
+        <label>Attachment files (images/videos)</label>
+        <input type="file" id="bFiles" accept="image/*,video/mp4,video/quicktime,video/webm" multiple />
         <div class="row">
           <button id="bListConversations" class="secondary">List Conversations</button>
           <button id="bListMessages" class="secondary">List Messages</button>
@@ -212,6 +212,7 @@
     </div>
 
     <p class="small">
+      Supported chat attachments: png, jpg, jpeg, webp, mp4, mov, webm (max 20MB per file, max 5 files).
       This page uses Socket.IO via CDN. If your environment blocks external assets, run the Node script instead.
     </p>
 

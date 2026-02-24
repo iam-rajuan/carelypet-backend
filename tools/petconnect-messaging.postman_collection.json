@@ -124,17 +124,18 @@
       }
     },
     {
-      "name": "Send Message (Attachments)",
+      "name": "Send Message (Attachments: Image/Video)",
       "request": {
         "method": "POST",
         "header": [
           { "key": "Authorization", "value": "Bearer {{accessToken}}" }
         ],
+        "description": "Upload chat attachments. Supported MIME types: image/png, image/jpg, image/jpeg, image/webp, video/mp4, video/quicktime (.mov), video/webm. Max 20MB per file, up to 5 files.",
         "body": {
           "mode": "formdata",
           "formdata": [
             { "key": "recipientId", "value": "{{recipientId}}", "type": "text" },
-            { "key": "body", "value": "Here is a file", "type": "text" },
+            { "key": "body", "value": "Here is a media file", "type": "text" },
             { "key": "files", "type": "file", "src": [] }
           ]
         },
