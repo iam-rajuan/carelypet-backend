@@ -5,9 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
-    "build": "tsc",
-    "start": "ts-node src/server.ts",
+    "dev": "node api.js && nodemon --watch src --ext ts --exec ts-node src/server.ts",
+    "build": "node api.js && tsc",
+    "start": "node api.js && ts-node src/server.ts",
     "start:prod": "npm run build && node dist/server.js",
     "create-admin": "ts-node src/scripts/createAdminUser.ts",
     "loadtest": "node tools/load-test.js"
