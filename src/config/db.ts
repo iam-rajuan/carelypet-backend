@@ -6,7 +6,12 @@ const connectDB = async (uri?: string): Promise<Connection> => {
   }
 
   mongoose.set("strictQuery", true);
-  const { connection } = await mongoose.connect(uri);
+  const { connection } = await mongoose.connect(uri, {
+    maxPoolSize: 30,
+    minPoolSize: 5,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+  });
   return connection;
 };
 

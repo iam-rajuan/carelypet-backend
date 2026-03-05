@@ -127,6 +127,9 @@ const userSchema = new mongoose.Schema<IUser>(
   },
   { timestamps: true }
 );
+userSchema.index({ role: 1, status: 1, isSuspended: 1, createdAt: -1 });
+userSchema.index({ name: 1 });
+userSchema.index({ blockedUsers: 1 });
 
 const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 

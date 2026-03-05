@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from "express";
 import auth from "../../../middlewares/auth.middleware";
 import validate from "../../../middlewares/validate.middleware";
 import { ZodError, ZodSchema } from "zod";
+import { cacheResponse, invalidateCacheOnSuccess } from "../../../middlewares/cache.middleware";
 import {
   updateProfileSchema,
   changePasswordSchema,
@@ -62,9 +63,15 @@ const validateQuery =
 router.use(auth);
 
 router.get("/me", usersController.getMe);
-router.get("/pet-pals", validateQuery(petPalsQuerySchema), usersController.listPetPals);
+router.get(
+  "/pet-pals",
+  cacheResponse("users:pet-pals", 30),
+  validateQuery(petPalsQuerySchema),
+  usersController.listPetPals
+);
 router.get(
   "/:id/pet-pal-profile",
+  cacheResponse("users:pet-pal-profile", 20),
   validateParams(userIdParamSchema),
   validateQuery(petPalProfileQuerySchema),
   usersController.getPetPalProfile
@@ -72,11 +79,26 @@ router.get(
 router.get("/search", validateQuery(userSearchQuerySchema), usersController.searchUsers);
 router.get("/:id", validateParams(userIdParamSchema), usersController.getUserById);
 router.get("/:id/pets", validateParams(userIdParamSchema), usersController.listUserPets);
-router.patch("/me", validate(updateProfileSchema), usersController.updateMe);
+router.patch(
+  "/me",
+  invalidateCacheOnSuccess("users:pet-pals", "users:pet-pal-profile"),
+  validate(updateProfileSchema),
+  usersController.updateMe
+);
 router.patch("/me/password", validate(changePasswordSchema), usersController.changePassword);
-router.patch("/me/avatar", validate(updateAvatarSchema), usersController.updateAvatar);
+router.patch(
+  "/me/avatar",
+  invalidateCacheOnSuccess("users:pet-pals", "users:pet-pal-profile", "community:posts"),
+  validate(updateAvatarSchema),
+  usersController.updateAvatar
+);
 
-router.patch("/me/cover", validate(updateCoverSchema), usersController.updateCover);
+router.patch(
+  "/me/cover",
+  invalidateCacheOnSuccess("users:pet-pals", "users:pet-pal-profile", "community:posts"),
+  validate(updateCoverSchema),
+  usersController.updateCover
+);
 router.post("/me/delete-request", usersController.requestDeletion);
 router.post("/me/delete-request/withdraw", usersController.withdrawDeletion);
 

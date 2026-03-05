@@ -203,6 +203,7 @@ export const searchUsers = async (userId: string, query: string) => {
     $or: [{ name: { $regex: regex } }, { username: { $regex: regex } }],
   })
     .select("name username avatarUrl role lastSeenAt")
+    .limit(20)
     .lean();
 };
 
@@ -245,22 +246,12 @@ export const listPetPalsPaginated = async (
     };
   }
 
-  const sampleSize = Math.min(total, safePage * safeLimit);
-  const data = await User.aggregate([
-    { $match: match },
-    { $sample: { size: sampleSize } },
-    { $skip: (safePage - 1) * safeLimit },
-    { $limit: safeLimit },
-    {
-      $project: {
-        name: 1,
-        username: 1,
-        avatarUrl: 1,
-        bio: 1,
-        lastSeenAt: 1,
-      },
-    },
-  ]);
+  const data = await User.find(match)
+    .sort({ createdAt: -1, _id: -1 })
+    .skip((safePage - 1) * safeLimit)
+    .limit(safeLimit)
+    .select("name username avatarUrl bio lastSeenAt")
+    .lean();
 
   return {
     data,

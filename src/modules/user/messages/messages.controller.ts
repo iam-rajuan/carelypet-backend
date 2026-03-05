@@ -116,9 +116,9 @@ export const sendMessageWithAttachments = async (req: AuthRequest, res: Response
         uploadsService.uploadFileToS3(file.buffer, file.mimetype, "messages/attachments").then(
           (result) => ({
             url: result.url,
-            mimeType: file.mimetype,
+            mimeType: result.mimeType,
             fileName: file.originalname,
-            size: file.size,
+            size: result.optimizedSize,
           })
         )
       )

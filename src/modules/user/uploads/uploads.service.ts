@@ -1,6 +1,7 @@
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomBytes } from "crypto";
 import { awsRegion, bucketName, getS3Client } from "./s3.config";
+import { optimizeMediaForUpload } from "./media-optimizer.service";
 
 const s3Client = getS3Client();
 
@@ -26,24 +27,56 @@ export const uploadFileToS3 = async (
   buffer: Buffer,
   mimeType: string,
   folder: string
-): Promise<{ url: string; key: string }> => {
-  const key = buildKey(folder, mimeType);
+): Promise<{
+  url: string;
+  key: string;
+  mimeType: string;
+  originalSize: number;
+  optimizedSize: number;
+}> => {
+  let processed = {
+    buffer,
+    mimeType,
+    originalSize: buffer.length,
+    optimizedSize: buffer.length,
+  };
+
+  try {
+    processed = await optimizeMediaForUpload(buffer, mimeType);
+  } catch (err) {
+    processed = {
+      buffer,
+      mimeType,
+      originalSize: buffer.length,
+      optimizedSize: buffer.length,
+    };
+  }
+
+  const key = buildKey(folder, processed.mimeType);
   try {
     await s3Client.send(
       new PutObjectCommand({
         Bucket: bucketName,
         Key: key,
-        Body: buffer,
-        ContentType: mimeType,
+        Body: processed.buffer,
+        ContentType: processed.mimeType,
         // ACL: "public-read",
         Metadata: {
           uploadedAt: new Date().toISOString(),
           folder,
+          originalSize: String(processed.originalSize),
+          optimizedSize: String(processed.optimizedSize),
         },
       })
     );
     const url = getPublicUrl(key);
-    return { url, key };
+    return {
+      url,
+      key,
+      mimeType: processed.mimeType,
+      originalSize: processed.originalSize,
+      optimizedSize: processed.optimizedSize,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to upload file";
     throw new Error(`Failed to upload file: ${message}`);

@@ -20,6 +20,7 @@ const conversationSchema = new Schema<IConversation>(
 );
 
 conversationSchema.index({ participants: 1, updatedAt: -1 });
+conversationSchema.index({ participants: 1, lastMessageAt: -1, updatedAt: -1 });
 
 const Conversation: Model<IConversation> = mongoose.model<IConversation>(
   "Conversation",

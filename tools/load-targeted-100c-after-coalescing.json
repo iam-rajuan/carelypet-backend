@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-03-05T03:58:38.325Z",
+  "rows": [
+    {
+      "name": "community_feed",
+      "reqPerSec": 988,
+      "p50": 93,
+      "p95": 147.67,
+      "p99": 843,
+      "non2xx": 0,
+      "errors": 0
+    },
+    {
+      "name": "pet_pals",
+      "reqPerSec": 1160,
+      "p50": 83,
+      "p95": 113.67,
+      "p99": 134,
+      "non2xx": 0,
+      "errors": 0
+    },
+    {
+      "name": "conversations",
+      "reqPerSec": 1020,
+      "p50": 81,
+      "p95": 112,
+      "p99": 149,
+      "non2xx": 0,
+      "errors": 0
+    }
+  ]
+}

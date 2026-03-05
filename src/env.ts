@@ -38,6 +38,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_CURRENCY: z.string().default("usd"),
   ORG_NAME: z.string().default("Carely Pets"),
+  CACHE_TTL_SECONDS: z.coerce.number().int().min(5).max(3600).default(30),
 });
 
 try {

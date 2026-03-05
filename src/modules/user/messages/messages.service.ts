@@ -7,6 +7,7 @@ import * as notificationService from "../../notifications/notification.service";
 
 const buildParticipantKey = (userId: string, otherUserId: string) =>
   [userId, otherUserId].sort().join(":");
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const ensureRecipient = async (senderId: string, recipientId: string) => {
   const user = await User.findById(recipientId).select("blockedUsers");
@@ -78,11 +79,13 @@ export const listConversations = async (
   const conditions: Record<string, unknown>[] = [{ participants: userId }];
 
   if (filters?.search) {
+    const searchRegex = new RegExp(escapeRegex(filters.search.trim()), "i");
     const matches = await User.find({
-      name: { $regex: filters.search, $options: "i" },
+      name: { $regex: searchRegex },
       _id: { $ne: userId },
     })
       .select("_id")
+      .limit(50)
       .lean();
     const matchIds = matches.map((user) => user._id);
     if (matchIds.length === 0) {
@@ -272,13 +275,21 @@ export const createMessageWithAttachments = async (
 };
 
 export const searchUsers = async (userId: string, query: string) => {
+  const safeQuery = escapeRegex(query.trim());
+  if (!safeQuery) {
+    return [];
+  }
+
   const { allBlocked } = await getBlockedInfo(userId);
   const conditions: Record<string, unknown> = {
     _id: { $ne: userId, ...(allBlocked.length ? { $nin: allBlocked } : {}) },
-    name: { $regex: query, $options: "i" },
+    name: { $regex: new RegExp(safeQuery, "i") },
   };
 
-  return User.find(conditions).select("name avatarUrl role lastSeenAt").lean();
+  return User.find(conditions)
+    .select("name avatarUrl role lastSeenAt")
+    .limit(20)
+    .lean();
 };
 
 export const blockUser = async (userId: string, targetUserId: string) => {

@@ -76,14 +76,19 @@ export const listPosts = async (
 
   const [posts, total] = await Promise.all([
     CommunityPost.find(query)
+      .select(
+        "author text media postType shareText sharedPost likes commentsCount sharesCount createdAt updatedAt"
+      )
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .populate({ path: "author", select: "name username avatarUrl" })
       .populate({
         path: "sharedPost",
+        select: "author text media postType createdAt",
         populate: { path: "author", select: "name username avatarUrl" },
-      }),
+      })
+      .lean(),
     CommunityPost.countDocuments(query),
   ]);
 
@@ -104,7 +109,8 @@ export const getPostById = async (postId: string) => {
     .populate({
       path: "sharedPost",
       populate: { path: "author", select: "name username avatarUrl" },
-    });
+    })
+    .lean();
   if (!post) {
     throw new Error("Post not found");
   }
@@ -227,7 +233,8 @@ export const toggleLikeComment = async (userId: string, commentId: string) => {
 export const listCommentsWithReplies = async (postId: string) => {
   const comments = await CommunityComment.find({ post: postId })
     .sort({ createdAt: 1 })
-    .populate({ path: "author", select: "name username avatarUrl" });
+    .populate({ path: "author", select: "name username avatarUrl" })
+    .lean();
 
   const topLevel: any[] = [];
   const byParent = new Map<string, any[]>();

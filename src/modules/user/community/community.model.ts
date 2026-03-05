@@ -71,6 +71,9 @@ const communityPostSchema = new Schema<ICommunityPost>(
   },
   { timestamps: true }
 );
+communityPostSchema.index({ createdAt: -1 });
+communityPostSchema.index({ author: 1, createdAt: -1 });
+communityPostSchema.index({ postType: 1, createdAt: -1 });
 
 const communityCommentSchema = new Schema<ICommunityComment>(
   {
@@ -82,6 +85,9 @@ const communityCommentSchema = new Schema<ICommunityComment>(
   },
   { timestamps: true }
 );
+communityCommentSchema.index({ post: 1, createdAt: 1 });
+communityCommentSchema.index({ parent: 1, createdAt: 1 });
+communityCommentSchema.index({ author: 1, createdAt: -1 });
 
 const communityReportSchema = new Schema<ICommunityReport>(
   {
@@ -99,6 +105,9 @@ const communityReportSchema = new Schema<ICommunityReport>(
   },
   { timestamps: true }
 );
+communityReportSchema.index({ post: 1 }, { unique: true });
+communityReportSchema.index({ status: 1, updatedAt: -1 });
+communityReportSchema.index({ reportedUser: 1, updatedAt: -1 });
 
 export const CommunityPost: Model<ICommunityPost> = mongoose.model<ICommunityPost>(
   "CommunityPost",
