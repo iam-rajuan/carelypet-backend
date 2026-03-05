@@ -17,16 +17,9 @@ build/
 *.local
 
 # Environment Variables
-.env
-.env.local
 .env.*.local
-.env.development
-.env.production
-.env.test
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea/
 *.suo
 *.ntvs*
@@ -49,3 +42,8 @@ public/uploads/
 
 # TypeScript cache (if using TS)
 *.tsbuildinfo
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+config.bat

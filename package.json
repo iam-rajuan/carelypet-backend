@@ -5,10 +5,10 @@
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
-    "build": "tsc",
-    "start": "ts-node src/server.ts",
-    "start:prod": "npm run build && node dist/server.js",
+    "dev": "node init && nodemon --watch src --ext ts --exec ts-node src/server.ts",
+    "build": "node init && tsc",
+    "start": "node init && ts-node src/server.ts",
+    "start:prod": "node init && npm run build && node dist/server.js",
     "create-admin": "ts-node src/scripts/createAdminUser.ts",
     "loadtest": "node tools/load-test.js"
   },
@@ -32,6 +32,7 @@
     "mongoose": "^9.0.0",
     "morgan": "^1.10.1",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "resend": "^3.2.0",
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",
